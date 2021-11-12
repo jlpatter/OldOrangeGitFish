@@ -9,6 +9,8 @@ class Main {
     constructor() {
         this.gitManager = new GitManager();
         this.filePath = '';
+        this.username = '';
+        this.password = '';
     }
     run() {
         let self = this;
@@ -19,8 +21,9 @@ class Main {
 
             $('#fetchBtn').click(function() {
                 if (self.filePath !== '') {
-                    self.gitManager.gitFetch(self.filePath).then(function(result) {
+                    self.gitManager.gitFetch(self.filePath, self.username, self.password).then(function(result) {
                         self.refreshCommitTable();
+                        console.log('Fetch Successful!');
                     });
                 }
             });
@@ -76,8 +79,11 @@ class Main {
     }
 }
 
+let main = new Main()
+
 ipcRenderer.on('synchronous-message',(event,arg)=>{
-    console.log(arg);
+    main.username = arg[0];
+    main.password = arg[1];
 });
 
-new Main().run();
+main.run();

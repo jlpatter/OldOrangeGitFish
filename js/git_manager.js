@@ -10,23 +10,12 @@ class GitManager {
         });
     }
 
-    async gitFetch(filePath) {
+    async gitFetch(filePath, username, password) {
         return await git.fetch({
             fs,
             http: http,
             onAuth: url => {
-                // let auth = lookupSavedPassword(url)
-                // if (auth) return auth
-
-                if (confirm('This repo is password protected. Ready to enter a username & password?')) {
-                    let auth = {
-                        username: prompt('Enter username'),
-                        password: prompt('Enter password'),
-                    }
-                    return auth
-                } else {
-                    return { cancel: true }
-                }
+                return {username: username, password: password};
             },
             dir: filePath,
             remote: 'origin',
