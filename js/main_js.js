@@ -9,6 +9,7 @@ class Main {
     constructor() {
         this.gitManager = new GitManager();
         this.filePath = '';
+        this.currentBranch = '';
         this.username = '';
         this.password = '';
     }
@@ -22,8 +23,7 @@ class Main {
             $('#fetchBtn').click(function() {
                 if (self.filePath !== '') {
                     self.gitManager.gitFetch(self.filePath, self.username, self.password).then(function(result) {
-                        self.refreshCommitTable();
-                        console.log('Fetch Successful!');
+                        self.refreshAll();
                     });
                 }
             });
@@ -31,12 +31,12 @@ class Main {
             $('#openBtn').click(function() {
                 dialog.showOpenDialog({ properties: ['openDirectory'] }).then(function(result) {
                     self.filePath = result.filePaths[0];
-                    self.refreshCommitTable();
+                    self.refreshAll();
                 });
             });
 
             $('#refreshBtn').click(function() {
-                self.refreshCommitTable();
+                self.refreshAll();
             });
 
             $('#exitBtn').click(function() {
@@ -65,6 +65,40 @@ class Main {
         win.loadFile('./views/username_password_prompt.html');
     }
 
+    refreshAll() {
+        this.refreshBranchTables();
+        this.refreshCommitTable();
+    }
+
+    refreshBranchTables() {
+        let self = this;
+        if (self.filePath !== '') {
+
+            self.gitManager.gitCurrentBranch(self.filePath).then(function(currentBranchResult) {
+                self.currentBranch = currentBranchResult;
+
+                self.gitManager.gitBranches(self.filePath).then(function(branchResults) {
+                    $('#localTableBody tr').remove();
+                    $('#localTableBody').append('<tr><th><h4>Local Branches</h4></th></tr>');
+                    console.log(self.currentBranch);
+                    branchResults[0].forEach(function(branchResult) {
+                        if (self.currentBranch === branchResult) {
+                            $('#localTableBody').append('<tr><th>* ' + branchResult + '</th></tr>');
+                        } else {
+                            $('#localTableBody').append('<tr><th>' + branchResult + '</th></tr>');
+                        }
+                    });
+
+                    $('#remoteTableBody tr').remove();
+                    $('#remoteTableBody').append('<tr><th><h4>Remote Branches</h4></th></tr>');
+                    branchResults[0].forEach(function(branchResult) {
+                        $('#remoteTableBody').append('<tr><th>' + branchResult + '</th></tr>');
+                    });
+                });
+            });
+        }
+    }
+
     refreshCommitTable() {
         let self = this;
         if (self.filePath !== '') {
@@ -72,7 +106,7 @@ class Main {
                 $('#commitTableBody tr').remove();
                 $('#commitTableBody').append('<tr><th><h4>Commits</h4></th></tr>');
                 logResults.forEach(function(logResult) {
-                    $('#commitTableBody').append('<tr><th>' + logResult.commit.message + '</th></tr>')
+                    $('#commitTableBody').append('<tr><th>' + logResult.commit.message + '</th></tr>');
                 });
             });
         }
