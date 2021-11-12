@@ -13,7 +13,7 @@ class Main {
                 dialog.showOpenDialog({ properties: ['openDirectory'] }).then(function(result) {
                     self.gitManager.gitLog(result.filePaths[0]).then(function(logResults) {
                         logResults.forEach(function(logResult) {
-                            $('#commitTable').append('<tr><th>' + logResult.commit.message + '</th></tr>')
+                            $('#commitTableBody').append('<tr><th>' + logResult.commit.message + '</th></tr>')
                         });
                     });
                 });
@@ -21,6 +21,11 @@ class Main {
 
             $('#exitBtn').click(function() {
                 app.quit();
+            });
+
+            window.addEventListener('resize', function(event){
+                let commitTableHeight = window.innerHeight - 100;
+                $('#commitTable').css('height', commitTableHeight + 'px');
             });
         });
     }
