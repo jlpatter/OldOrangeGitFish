@@ -1,4 +1,4 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const remoteMain = require('@electron/remote/main');
 const path = require('path');
 
@@ -18,6 +18,10 @@ function createWindow () {
     remoteMain.enable(win.webContents);
 
     win.loadFile('views/index.html');
+
+    ipcMain.on('synchronous-message',(event,arg)=>{
+        win.webContents.send('synchronous-message', arg);
+    });
 }
 
 app.whenReady().then(() => {
