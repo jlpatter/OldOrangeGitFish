@@ -12,6 +12,8 @@ class Main {
             $('#openBtn').click(function() {
                 dialog.showOpenDialog({ properties: ['openDirectory'] }).then(function(result) {
                     self.gitManager.gitLog(result.filePaths[0]).then(function(logResults) {
+                        $('#commitTableBody tr').remove();
+                        $('#commitTableBody').append('<tr><th><h4>Commits</h4></th></tr>');
                         logResults.forEach(function(logResult) {
                             $('#commitTableBody').append('<tr><th>' + logResult.commit.message + '</th></tr>')
                         });
