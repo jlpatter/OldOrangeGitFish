@@ -11,6 +11,7 @@
     <script>let $ = require('jquery');</script>
     <script>require('popper.js');</script>
     <script>require('bootstrap');</script>
+    <script type="text/javascript" src="../js/git_manager.js"></script>
     <script type="text/javascript" src="../js/main_js.js"></script>
 
     <title>eGitGUI</title>
@@ -33,11 +34,11 @@
     </table>
 
     <div class="container">
-        <button type="button" class="btn btn-primary">Open</button>
-        <button type="button" class="btn btn-secondary">Refresh</button>
+        <button id="openBtn" type="button" class="btn btn-primary">Open</button>
+        <button id="refreshBtn" type="button" class="btn btn-secondary">Refresh</button>
         <div class="right">
             <button id="exitBtn" type="button" class="btn btn-danger">Exit</button>
-            <button type="button" class="btn btn-primary">Commit</button>
+            <button id="commitBtn" type="button" class="btn btn-primary">Commit</button>
         </div>
     </div>
 </body>
