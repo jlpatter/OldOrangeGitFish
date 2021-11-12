@@ -11,7 +11,11 @@ class Main {
         window.addEventListener('DOMContentLoaded', () => {
             $('#openBtn').click(function() {
                 dialog.showOpenDialog({ properties: ['openDirectory'] }).then(function(result) {
-                    self.gitManager.gitLog(result.filePaths[0]);
+                    self.gitManager.gitLog(result.filePaths[0]).then(function(logResults) {
+                        logResults.forEach(function(logResult) {
+                            $('#commitTable').append('<tr><th>' + logResult.commit.message + '</th></tr>')
+                        });
+                    });
                 });
             });
 
