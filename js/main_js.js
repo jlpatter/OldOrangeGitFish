@@ -83,16 +83,16 @@ class Main {
                     console.log(self.currentBranch);
                     branchResults[0].forEach(function(branchResult) {
                         if (self.currentBranch === branchResult) {
-                            $('#localTableBody').append('<tr><th>* ' + branchResult + '</th></tr>');
+                            $('#localTableBody').append('<tr><td>* ' + branchResult + '</td></tr>');
                         } else {
-                            $('#localTableBody').append('<tr><th>' + branchResult + '</th></tr>');
+                            $('#localTableBody').append('<tr><td>' + branchResult + '</td></tr>');
                         }
                     });
 
                     $('#remoteTableBody tr').remove();
-                    $('#remoteTableBody').append('<tr><th><h4>Remote Branches</h4></th></tr>');
+                    $('#remoteTableBody').append('<tr><td><h4>Remote Branches</h4></td></tr>');
                     branchResults[0].forEach(function(branchResult) {
-                        $('#remoteTableBody').append('<tr><th>' + branchResult + '</th></tr>');
+                        $('#remoteTableBody').append('<tr><td>' + branchResult + '</td></tr>');
                     });
                 });
             });
@@ -106,7 +106,7 @@ class Main {
                 $('#commitTableBody tr').remove();
                 $('#commitTableBody').append('<tr><th><h4>Commits</h4></th></tr>');
                 logResults.forEach(function(logResult) {
-                    $('#commitTableBody').append('<tr><th>' + logResult.commit.message + '</th></tr>');
+                    $('#commitTableBody').append('<tr><td>' + logResult.commit.message + '</td></tr>');
                 });
             });
         }
