@@ -17,6 +17,10 @@ class Main {
                 });
             });
 
+            $('#refreshBtn').click(function() {
+                self.refreshCommitTable();
+            });
+
             $('#exitBtn').click(function() {
                 app.quit();
             });
