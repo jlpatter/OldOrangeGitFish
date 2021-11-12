@@ -1,5 +1,8 @@
 const { app, BrowserWindow } = require('electron');
+const remoteMain = require('@electron/remote/main');
 const path = require('path');
+
+remoteMain.initialize();
 
 function createWindow () {
     const win = new BrowserWindow({
@@ -11,6 +14,8 @@ function createWindow () {
             contextIsolation: false
         }
     });
+
+    remoteMain.enable(win.webContents);
 
     win.loadFile('views/index.html');
 }
