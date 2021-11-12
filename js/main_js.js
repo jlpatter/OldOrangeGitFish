@@ -26,7 +26,7 @@ class Main {
             });
 
             window.addEventListener('resize', function(event){
-                let commitTableHeight = window.innerHeight - 100;
+                let commitTableHeight = window.innerHeight - 150;
                 $('#commitTable').css('height', commitTableHeight + 'px');
             });
         });
