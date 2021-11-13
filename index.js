@@ -1,7 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const remoteMain = require('@electron/remote/main');
 const path = require('path');
-const GitManager = require('./js/git_manager');
+const GitManager = require('./backend/git_manager');
 
 const gitManager = new GitManager();
 
