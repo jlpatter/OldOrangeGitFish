@@ -1,4 +1,5 @@
-let Git = require('nodegit');
+const { ipcMain } = require('electron');
+const Git = require('nodegit');
 
 module.exports = class GitManager {
 
@@ -16,9 +17,10 @@ module.exports = class GitManager {
     gitLog(win) {
         let self = this;
         if (self.repo !== null) {
-            self.repo.getMasterCommit().then(function (masterCommit) {
-                let history = masterCommit.history();
+            self.repo.getHeadCommit().then(function (headCommit) {
+                let history = headCommit.history();
 
+                // TODO: Wrap this in a promise and return results
                 history.on('end', function (commits) {
                     let results = [];
                     for (let commit of commits) {
@@ -48,13 +50,25 @@ module.exports = class GitManager {
         return results;
     }
 
-    async gitFetch(username, password) {
+    gitFetch(win) {
         let self = this;
         self.repo.fetchAll({
             downloadTags: true,
             callbacks: {
-                credentials: function() {
-                    return Git.Cred.userpassPlaintextNew('jlpatter','');
+                credentials: async function () {
+                    let username = '';
+                    let password = '';
+
+                    await new Promise(function (resolve, reject) {
+                        win.webContents.send('git-fetch-creds', []);
+                        ipcMain.on('git-fetch-creds', (event, arg) => {
+                            username = arg[0];
+                            password = arg[1];
+                            resolve();
+                        });
+                    });
+
+                    return Git.Cred.userpassPlaintextNew(username, password);
                 }
             }
         }).then(function() {

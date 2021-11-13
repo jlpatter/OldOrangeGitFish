@@ -43,7 +43,7 @@ function createWindow () {
     });
 
     ipcMain.on('git-fetch-message', (event, arg) => {
-        gitManager.gitFetch();
+        gitManager.gitFetch(win);
     });
 }
 

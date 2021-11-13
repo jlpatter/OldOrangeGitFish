@@ -121,4 +121,10 @@ ipcRenderer.on('git-log-message',(event, arg) => {
     main.refreshCommitTable(arg);
 });
 
+ipcRenderer.on('git-fetch-creds',(event, arg) => {
+    main.openLoginWindow().then(function(results) {
+        ipcRenderer.send('git-fetch-creds', [main.username, main.password]);
+    });
+});
+
 main.run();
