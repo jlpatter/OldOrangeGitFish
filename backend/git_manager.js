@@ -17,7 +17,7 @@ module.exports = class GitManager {
     async gitLog() {
         let self = this;
         if (self.repo !== null) {
-            let branches = {};
+            let commitBranchDict = {};
             let branchCommits = [];
             await self.repo.getReferences().then(async function (stdVectorGitReference) {
                 let gitReferences = {};
@@ -26,54 +26,65 @@ module.exports = class GitManager {
                         gitReferences[ref.toString()] = ref;
                     }
                 }
-                let values = Object.keys(gitReferences).map(function(key){
-                    return gitReferences[key];
-                });
-                for (let ref of values) {
-                    let commitId = await self.repo.getBranchCommit(ref).then(function (commit) {
-                        branchCommits.push(commit);
-                        return commit.id().toString();
-                    });
-                    if (ref.isHead()) {
-                        if (commitId in branches) {
-                            branches[commitId].push('* ' + ref.toString());
-                        }
-                        else {
-                            branches[commitId] = ['* ' + ref.toString()];
-                        }
-                    } else {
-                        if (commitId in branches) {
-                            branches[commitId].push(ref.toString());
-                        }
-                        else {
-                            branches[commitId] = [ref.toString()];
-                        }
-                    }
-                }
+                commitBranchDict = await self.buildBranchCommitsAndCommitBranchDict(gitReferences, branchCommits)
             });
             let results = [];
-            for (let branchCommit of branchCommits) {
-                let history = branchCommit.history();
-
-                let headResults = [];
-                await new Promise(function (resolve, reject) {
-                    history.on('end', function (commits) {
-                        for (let commit of commits) {
-                            if (commit.id().toString() in branches) {
-                                headResults.push([branches[commit.id().toString()], commit.message()]);
-                            } else {
-                                headResults.push([[], commit.message()]);
-                            }
-                        }
-                        resolve();
-                    });
-
-                    history.start();
-                });
-                results = results.concat(headResults);
-            }
+            let allCommitLines = await self.getAllCommitLines(branchCommits);
+            let masterLine = self.getMasterLine(allCommitLines);
             return results;
         }
+    }
+
+    async buildBranchCommitsAndCommitBranchDict(gitReferences, branchCommits) {
+        let self = this;
+        let commitBranchDict = {};
+        let values = Object.keys(gitReferences).map(function (key) {
+            return gitReferences[key];
+        });
+        for (let ref of values) {
+            let commitId = await self.repo.getBranchCommit(ref).then(function (commit) {
+                branchCommits.push(commit);
+                return commit.id().toString();
+            });
+            if (ref.isHead()) {
+                if (commitId in commitBranchDict) {
+                    commitBranchDict[commitId].push('* ' + ref.toString());
+                } else {
+                    commitBranchDict[commitId] = ['* ' + ref.toString()];
+                }
+            } else {
+                if (commitId in commitBranchDict) {
+                    commitBranchDict[commitId].push(ref.toString());
+                } else {
+                    commitBranchDict[commitId] = [ref.toString()];
+                }
+            }
+        }
+        return commitBranchDict;
+    }
+
+    async getAllCommitLines(branchCommits) {
+        let allCommitLines = [];
+        let index = 0;
+        for (let branchCommit of branchCommits) {
+            let history = branchCommit.history();
+
+            allCommitLines[index] = [];
+            await new Promise(function (resolve, reject) {
+                history.on('end', function (commits) {
+                    allCommitLines[index] = allCommitLines[index].concat(commits)
+                    resolve();
+                });
+
+                history.start();
+            });
+            index++;
+        }
+        return allCommitLines;
+    }
+
+    getMasterLine(allCommitLines) {
+        return [];
     }
 
     gitFetch(win) {
