@@ -14,10 +14,6 @@ class Main {
     run() {
         let self = this;
         window.addEventListener('DOMContentLoaded', () => {
-            $('#loginBtn').click(function() {
-                self.openLoginWindow();
-            });
-
             $('#fetchBtn').click(function() {
                 if (self.filePath !== '') {
                     ipcRenderer.send('git-fetch-message', []);
