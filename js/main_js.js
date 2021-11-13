@@ -28,13 +28,12 @@ class Main {
             $('#openBtn').click(function() {
                 dialog.showOpenDialog({ properties: ['openDirectory'] }).then(function(result) {
                     self.filePath = result.filePaths[0];
-                    ipcRenderer.send('git-log-message', self.filePath);
-                    // self.refreshAll();
+                    self.refreshAll();
                 });
             });
 
             $('#refreshBtn').click(function() {
-                // self.refreshAll();
+                self.refreshAll();
             });
 
             $('#exitBtn').click(function() {
@@ -64,8 +63,8 @@ class Main {
     }
 
     refreshAll() {
-        this.refreshBranchTables();
-        this.refreshCommitTable();
+        // this.refreshBranchTables();
+        ipcRenderer.send('git-log-message', this.filePath);
     }
 
     refreshBranchTables() {
@@ -97,15 +96,13 @@ class Main {
         }
     }
 
-    refreshCommitTable() {
+    refreshCommitTable(commits) {
         let self = this;
         if (self.filePath !== '') {
-            self.gitManager.gitLog(self.filePath).then(function(logResults) {
-                $('#commitTableBody tr').remove();
-                $('#commitTableBody').append('<tr><th><h4>Commits</h4></th></tr>');
-                logResults.forEach(function(logResult) {
-                    $('#commitTableBody').append('<tr><td>' + logResult.commit.message + '</td></tr>');
-                });
+            $('#commitTableBody tr').remove();
+            $('#commitTableBody').append('<tr><th><h4>Commits</h4></th></tr>');
+            commits.forEach(function(commit) {
+                $('#commitTableBody').append('<tr><td>' + commit + '</td></tr>');
             });
         }
     }
@@ -119,7 +116,7 @@ ipcRenderer.on('login-message',(event, arg) => {
 });
 
 ipcRenderer.on('git-log-message',(event, arg) => {
-    console.log(arg);
+    main.refreshCommitTable(arg);
 });
 
 main.run();
