@@ -32,8 +32,14 @@ function createWindow () {
         });
     });
 
+    ipcMain.on('git-branches-message', (event, arg) => {
+        gitManager.gitBranches().then(function(results) {
+            win.webContents.send('git-branches-message', results);
+        });
+    });
+
     ipcMain.on('git-log-message', (event, arg) => {
-        gitManager.gitLog(arg, win);
+        gitManager.gitLog(win);
     });
 }
 

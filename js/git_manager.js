@@ -13,7 +13,7 @@ module.exports = class GitManager {
         });
     }
 
-    gitLog(filePath, win) {
+    gitLog(win) {
         let self = this;
         if (self.repo !== null) {
             self.repo.getMasterCommit().then(function (masterCommit) {
@@ -32,11 +32,20 @@ module.exports = class GitManager {
         }
     }
 
-    async gitBranches(filePath) {
+    async gitBranches() {
         let self = this;
-        self.repo.getReferences().then(function(stdVectorGitReference) {
-            // Use stdVectorGitReference
+        let results = [];
+        await self.repo.getReferences().then(function(stdVectorGitReference) {
+            for (let ref of stdVectorGitReference) {
+                if (ref.isHead()) {
+                    results.push('* ' + ref.toString());
+                }
+                else {
+                    results.push(ref.toString());
+                }
+            }
         });
+        return results;
     }
 
     async gitCurrentBranch(filePath) {

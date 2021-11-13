@@ -63,35 +63,24 @@ class Main {
     }
 
     refreshAll() {
-        // this.refreshBranchTables();
-        ipcRenderer.send('git-log-message', this.filePath);
+        ipcRenderer.send('git-branches-message', []);
+        ipcRenderer.send('git-log-message', []);
     }
 
-    refreshBranchTables() {
+    refreshBranchTables(branches) {
         let self = this;
         if (self.filePath !== '') {
+            $('#localTableBody tr').remove();
+            $('#remoteTableBody tr').remove();
+            $('#localTableBody').append('<tr><th><h4>Local Branches</h4></th></tr>');
+            $('#remoteTableBody').append('<tr><td><h4>Remote Branches</h4></td></tr>');
+            branches.forEach(function(branchResult) {
+                if (branchResult.startsWith('refs/heads') || branchResult.startsWith('* refs/heads')) {
+                    $('#localTableBody').append('<tr><td>' + branchResult + '</td></tr>');
+                } else {
+                    $('#remoteTableBody').append('<tr><td>' + branchResult + '</td></tr>');
+                }
 
-            self.gitManager.gitCurrentBranch(self.filePath).then(function(currentBranchResult) {
-                self.currentBranch = currentBranchResult;
-
-                self.gitManager.gitBranches(self.filePath).then(function(branchResults) {
-                    $('#localTableBody tr').remove();
-                    $('#localTableBody').append('<tr><th><h4>Local Branches</h4></th></tr>');
-                    console.log(self.currentBranch);
-                    branchResults[0].forEach(function(branchResult) {
-                        if (self.currentBranch === branchResult) {
-                            $('#localTableBody').append('<tr><td>* ' + branchResult + '</td></tr>');
-                        } else {
-                            $('#localTableBody').append('<tr><td>' + branchResult + '</td></tr>');
-                        }
-                    });
-
-                    $('#remoteTableBody tr').remove();
-                    $('#remoteTableBody').append('<tr><td><h4>Remote Branches</h4></td></tr>');
-                    branchResults[0].forEach(function(branchResult) {
-                        $('#remoteTableBody').append('<tr><td>' + branchResult + '</td></tr>');
-                    });
-                });
             });
         }
     }
@@ -117,6 +106,10 @@ ipcRenderer.on('login-message',(event, arg) => {
 
 ipcRenderer.on('refresh-message',(event, arg) => {
     main.refreshAll();
+});
+
+ipcRenderer.on('git-branches-message',(event, arg) => {
+    main.refreshBranchTables(arg);
 });
 
 ipcRenderer.on('git-log-message',(event, arg) => {
