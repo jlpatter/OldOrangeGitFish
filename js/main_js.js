@@ -28,7 +28,7 @@ class Main {
             $('#openBtn').click(function() {
                 dialog.showOpenDialog({ properties: ['openDirectory'] }).then(function(result) {
                     self.filePath = result.filePaths[0];
-                    self.refreshAll();
+                    ipcRenderer.send('git-open-message', self.filePath);
                 });
             });
 
@@ -113,6 +113,10 @@ let main = new Main()
 ipcRenderer.on('login-message',(event, arg) => {
     main.username = arg[0];
     main.password = arg[1];
+});
+
+ipcRenderer.on('refresh-message',(event, arg) => {
+    main.refreshAll();
 });
 
 ipcRenderer.on('git-log-message',(event, arg) => {

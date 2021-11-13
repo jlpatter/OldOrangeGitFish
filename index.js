@@ -1,7 +1,9 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const remoteMain = require('@electron/remote/main');
 const path = require('path');
-const gitManager = require('./js/git_manager');
+const GitManager = require('./js/git_manager');
+
+const gitManager = new GitManager();
 
 remoteMain.initialize();
 
@@ -22,6 +24,12 @@ function createWindow () {
 
     ipcMain.on('login-message',(event, arg) => {
         win.webContents.send('login-message', arg);
+    });
+
+    ipcMain.on('git-open-message', (event, arg) => {
+        gitManager.gitOpen(arg).then(function() {
+            win.webContents.send('refresh-message', []);
+        });
     });
 
     ipcMain.on('git-log-message', (event, arg) => {

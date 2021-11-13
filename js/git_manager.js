@@ -1,9 +1,22 @@
 let Git = require('nodegit');
 
-module.exports = {
-    async gitLog(filePath, win) {
-        await Git.Repository.open(filePath).then(async function (repo) {
-            await repo.getMasterCommit().then(function (masterCommit) {
+module.exports = class GitManager {
+
+    constructor() {
+        this.repo = null;
+    }
+
+    async gitOpen(filePath) {
+        let self = this;
+        await Git.Repository.open(filePath).then(function (repo) {
+            self.repo = repo;
+        });
+    }
+
+    gitLog(filePath, win) {
+        let self = this;
+        if (self.repo !== null) {
+            self.repo.getMasterCommit().then(function (masterCommit) {
                 let history = masterCommit.history();
 
                 history.on('end', function (commits) {
@@ -16,21 +29,22 @@ module.exports = {
 
                 history.start();
             });
-        });
-    },
+        }
+    }
 
     async gitBranches(filePath) {
-        let branches = await git.listBranches({ fs, dir: filePath });
-        let remoteBranches = await git.listBranches({ fs, dir: filePath, remote: 'origin' })
-        return [branches, remoteBranches];
-    },
+        let self = this;
+        self.repo.getReferences().then(function(stdVectorGitReference) {
+            // Use stdVectorGitReference
+        });
+    }
 
     async gitCurrentBranch(filePath) {
         return await git.currentBranch({
             fs,
             dir: filePath
         })
-    },
+    }
 
     async gitFetch(filePath, username, password) {
         return await git.fetch({
