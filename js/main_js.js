@@ -68,35 +68,41 @@ class Main {
         if ($mainTable.hasClass('invisible')) {
             $mainTable.removeClass('invisible');
         }
-        ipcRenderer.send('git-branches-message', []);
         ipcRenderer.send('git-log-message', []);
     }
 
-    refreshBranchTables(branches) {
+    refreshCommitTable(results) {
         let self = this;
         if (self.filePath !== '') {
+            $('#commitTableBody tr').remove();
+            $('#commitTableBody').append('<tr><th><h4>Commits</h4></th></tr>');
+
+            let branches = [];
+            results.forEach(function(result) {
+                if (result[0].length > 0) {
+                    let stringToBuild = '<tr><td>';
+                    result[0].forEach(function(branch) {
+                        branches.push(branch);
+                        stringToBuild += '(' + branch + ') ';
+                    });
+                    stringToBuild += result[1] + '</td></tr>';
+                    $('#commitTableBody').append(stringToBuild);
+                } else {
+                    $('#commitTableBody').append('<tr><td>' + result[1] + '</td></tr>');
+                }
+            });
+
             $('#localTableBody tr').remove();
             $('#remoteTableBody tr').remove();
             $('#localTableBody').append('<tr><th><h4>Local Branches</h4></th></tr>');
             $('#remoteTableBody').append('<tr><td><h4>Remote Branches</h4></td></tr>');
+
             branches.forEach(function(branchResult) {
                 if (branchResult.startsWith('refs/heads') || branchResult.startsWith('* refs/heads')) {
                     $('#localTableBody').append('<tr><td>' + branchResult + '</td></tr>');
                 } else {
                     $('#remoteTableBody').append('<tr><td>' + branchResult + '</td></tr>');
                 }
-
-            });
-        }
-    }
-
-    refreshCommitTable(commits) {
-        let self = this;
-        if (self.filePath !== '') {
-            $('#commitTableBody tr').remove();
-            $('#commitTableBody').append('<tr><th><h4>Commits</h4></th></tr>');
-            commits.forEach(function(commit) {
-                $('#commitTableBody').append('<tr><td>' + commit + '</td></tr>');
             });
         }
     }
@@ -111,10 +117,6 @@ ipcRenderer.on('login-message',(event, arg) => {
 
 ipcRenderer.on('refresh-message',(event, arg) => {
     main.refreshAll();
-});
-
-ipcRenderer.on('git-branches-message',(event, arg) => {
-    main.refreshBranchTables(arg);
 });
 
 ipcRenderer.on('git-log-message',(event, arg) => {

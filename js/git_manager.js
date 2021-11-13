@@ -14,40 +14,63 @@ module.exports = class GitManager {
         });
     }
 
-    gitLog(win) {
+    async gitLog() {
         let self = this;
         if (self.repo !== null) {
-            self.repo.getHeadCommit().then(function (headCommit) {
+            let branches = {};
+            await self.repo.getReferences().then(async function (stdVectorGitReference) {
+                let gitReferences = {};
+                for (let ref of stdVectorGitReference) {
+                    if (!(ref.toString() in gitReferences)) {
+                        gitReferences[ref.toString()] = ref;
+                    }
+                }
+                let values = Object.keys(gitReferences).map(function(key){
+                    return gitReferences[key];
+                });
+                for (let ref of values) {
+                    let commitId = await self.repo.getBranchCommit(ref).then(function (commit) {
+                        return commit.id().toString();
+                    });
+                    if (ref.isHead()) {
+                        if (commitId in branches) {
+                            branches[commitId].push('* ' + ref.toString());
+                        }
+                        else {
+                            branches[commitId] = ['* ' + ref.toString()];
+                        }
+                    } else {
+                        if (commitId in branches) {
+                            branches[commitId].push(ref.toString());
+                        }
+                        else {
+                            branches[commitId] = [ref.toString()];
+                        }
+                    }
+                }
+            });
+            return await self.repo.getHeadCommit().then(async function (headCommit) {
                 let history = headCommit.history();
 
-                // TODO: Wrap this in a promise and return results
-                history.on('end', function (commits) {
-                    let results = [];
-                    for (let commit of commits) {
-                        results.push(commit.message());
-                    }
-                    win.webContents.send('git-log-message', results);
+                let results = [];
+                await new Promise(function (resolve, reject) {
+                    history.on('end', function (commits) {
+                        for (let commit of commits) {
+                            if (commit.id().toString() in branches) {
+                                results.push([branches[commit.id().toString()], commit.message()]);
+                            } else {
+                                results.push([[], commit.message()]);
+                            }
+                        }
+                        resolve();
+                    });
+
+                    history.start();
                 });
 
-                history.start();
+                return results;
             });
         }
-    }
-
-    async gitBranches() {
-        let self = this;
-        let results = [];
-        await self.repo.getReferences().then(function(stdVectorGitReference) {
-            for (let ref of stdVectorGitReference) {
-                if (ref.isHead()) {
-                    results.push('* ' + ref.toString());
-                }
-                else {
-                    results.push(ref.toString());
-                }
-            }
-        });
-        return results;
     }
 
     gitFetch(win) {
