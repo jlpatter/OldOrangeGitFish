@@ -56,23 +56,27 @@ module.exports = class GitManager {
             downloadTags: true,
             callbacks: {
                 credentials: async function () {
-                    let username = '';
-                    let password = '';
-
-                    await new Promise(function (resolve, reject) {
-                        win.webContents.send('git-fetch-creds', []);
-                        ipcMain.on('git-fetch-creds', (event, arg) => {
-                            username = arg[0];
-                            password = arg[1];
-                            resolve();
-                        });
-                    });
-
-                    return Git.Cred.userpassPlaintextNew(username, password);
+                    return await self.getCred(win);
                 }
             }
         }).then(function() {
             console.log('Fetch Success!');
         });
+    }
+
+    async getCred(win) {
+        let username = '';
+        let password = '';
+
+        await new Promise(function (resolve, reject) {
+            win.webContents.send('git-fetch-creds', []);
+            ipcMain.on('git-fetch-creds', (event, arg) => {
+                username = arg[0];
+                password = arg[1];
+                resolve();
+            });
+        });
+
+        return Git.Cred.userpassPlaintextNew(username, password);
     }
 }
