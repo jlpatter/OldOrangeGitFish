@@ -7,7 +7,6 @@ const BrowserWindow = remote.BrowserWindow;
 
 class Main {
     constructor() {
-        this.gitManager = new GitManager();
         this.filePath = '';
         this.currentBranch = '';
         this.username = '';
@@ -22,21 +21,20 @@ class Main {
 
             $('#fetchBtn').click(function() {
                 if (self.filePath !== '') {
-                    self.gitManager.gitFetch(self.filePath, self.username, self.password).then(function(result) {
-                        self.refreshAll();
-                    });
+                    // send fetch message
                 }
             });
 
             $('#openBtn').click(function() {
                 dialog.showOpenDialog({ properties: ['openDirectory'] }).then(function(result) {
                     self.filePath = result.filePaths[0];
-                    self.refreshAll();
+                    ipcRenderer.send('git-log-message', self.filePath);
+                    // self.refreshAll();
                 });
             });
 
             $('#refreshBtn').click(function() {
-                self.refreshAll();
+                // self.refreshAll();
             });
 
             $('#exitBtn').click(function() {
@@ -115,9 +113,13 @@ class Main {
 
 let main = new Main()
 
-ipcRenderer.on('synchronous-message',(event,arg)=>{
+ipcRenderer.on('login-message',(event,arg)=>{
     main.username = arg[0];
     main.password = arg[1];
+});
+
+ipcRenderer.on('git-log-message',(event,arg)=>{
+    console.log(arg);
 });
 
 main.run();
