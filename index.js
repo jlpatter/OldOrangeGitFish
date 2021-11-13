@@ -41,6 +41,10 @@ function createWindow () {
     ipcMain.on('git-log-message', (event, arg) => {
         gitManager.gitLog(win);
     });
+
+    ipcMain.on('git-fetch-message', (event, arg) => {
+        gitManager.gitFetch();
+    });
 }
 
 app.whenReady().then(() => {

@@ -8,7 +8,6 @@ const BrowserWindow = remote.BrowserWindow;
 class Main {
     constructor() {
         this.filePath = '';
-        this.currentBranch = '';
         this.username = '';
         this.password = '';
     }
@@ -21,7 +20,7 @@ class Main {
 
             $('#fetchBtn').click(function() {
                 if (self.filePath !== '') {
-                    // send fetch message
+                    ipcRenderer.send('git-fetch-message', []);
                 }
             });
 
@@ -47,7 +46,7 @@ class Main {
         });
     }
 
-    openLoginWindow() {
+    async openLoginWindow() {
         const win = new BrowserWindow({
             width: 800,
             height: 600,
@@ -59,7 +58,13 @@ class Main {
 
         remoteMain.enable(win.webContents);
 
-        win.loadFile('./views/username_password_prompt.html');
+        await new Promise(function (resolve, reject) {
+            win.loadFile('./views/username_password_prompt.html');
+
+            win.on('close', function() {
+                resolve();
+            });
+        });
     }
 
     refreshAll() {

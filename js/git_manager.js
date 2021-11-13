@@ -48,23 +48,17 @@ module.exports = class GitManager {
         return results;
     }
 
-    async gitCurrentBranch(filePath) {
-        return await git.currentBranch({
-            fs,
-            dir: filePath
-        })
-    }
-
-    async gitFetch(filePath, username, password) {
-        return await git.fetch({
-            fs,
-            http: http,
-            onAuth: url => {
-                return {username: username, password: password};
-            },
-            dir: filePath,
-            remote: 'origin',
-            tags: true
+    async gitFetch(username, password) {
+        let self = this;
+        self.repo.fetchAll({
+            downloadTags: true,
+            callbacks: {
+                credentials: function() {
+                    return Git.Cred.userpassPlaintextNew('jlpatter','');
+                }
+            }
+        }).then(function() {
+            console.log('Fetch Success!');
         });
     }
 }
