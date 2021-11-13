@@ -1,14 +1,22 @@
 let Git = require('nodegit');
 
 module.exports = {
-    async gitLog(filePath) {
-        let result;
+    async gitLog(filePath, win) {
         await Git.Repository.open(filePath).then(async function (repo) {
             await repo.getMasterCommit().then(function (masterCommit) {
-                result = masterCommit.id().toString();
+                let history = masterCommit.history();
+
+                history.on('end', function (commits) {
+                    let results = [];
+                    for (let commit of commits) {
+                        results.push(commit.message());
+                    }
+                    win.webContents.send('git-log-message', results);
+                });
+
+                history.start();
             });
         });
-        return result;
     },
 
     async gitBranches(filePath) {

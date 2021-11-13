@@ -113,12 +113,12 @@ class Main {
 
 let main = new Main()
 
-ipcRenderer.on('login-message',(event,arg)=>{
+ipcRenderer.on('login-message',(event, arg) => {
     main.username = arg[0];
     main.password = arg[1];
 });
 
-ipcRenderer.on('git-log-message',(event,arg)=>{
+ipcRenderer.on('git-log-message',(event, arg) => {
     console.log(arg);
 });
 

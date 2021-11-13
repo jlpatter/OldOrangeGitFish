@@ -25,9 +25,7 @@ function createWindow () {
     });
 
     ipcMain.on('git-log-message', (event, arg) => {
-        gitManager.gitLog(arg).then(function(result) {
-            win.webContents.send('git-log-message', result);
-        });
+        gitManager.gitLog(arg, win);
     });
 }
 
