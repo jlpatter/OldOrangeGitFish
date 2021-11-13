@@ -64,6 +64,10 @@ class Main {
     }
 
     refreshAll() {
+        let $mainTable = $('#mainTable');
+        if ($mainTable.hasClass('invisible')) {
+            $mainTable.removeClass('invisible');
+        }
         ipcRenderer.send('git-branches-message', []);
         ipcRenderer.send('git-log-message', []);
     }
