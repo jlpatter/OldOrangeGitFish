@@ -18,6 +18,7 @@ module.exports = class GitManager {
         let self = this;
         if (self.repo !== null) {
             let branches = {};
+            let branchCommits = [];
             await self.repo.getReferences().then(async function (stdVectorGitReference) {
                 let gitReferences = {};
                 for (let ref of stdVectorGitReference) {
@@ -30,6 +31,7 @@ module.exports = class GitManager {
                 });
                 for (let ref of values) {
                     let commitId = await self.repo.getBranchCommit(ref).then(function (commit) {
+                        branchCommits.push(commit);
                         return commit.id().toString();
                     });
                     if (ref.isHead()) {
@@ -49,17 +51,18 @@ module.exports = class GitManager {
                     }
                 }
             });
-            return await self.repo.getHeadCommit().then(async function (headCommit) {
-                let history = headCommit.history();
+            let results = [];
+            for (let branchCommit of branchCommits) {
+                let history = branchCommit.history();
 
-                let results = [];
+                let headResults = [];
                 await new Promise(function (resolve, reject) {
                     history.on('end', function (commits) {
                         for (let commit of commits) {
                             if (commit.id().toString() in branches) {
-                                results.push([branches[commit.id().toString()], commit.message()]);
+                                headResults.push([branches[commit.id().toString()], commit.message()]);
                             } else {
-                                results.push([[], commit.message()]);
+                                headResults.push([[], commit.message()]);
                             }
                         }
                         resolve();
@@ -67,9 +70,9 @@ module.exports = class GitManager {
 
                     history.start();
                 });
-
-                return results;
-            });
+                results = results.concat(headResults);
+            }
+            return results;
         }
     }
 
