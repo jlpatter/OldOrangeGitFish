@@ -50,8 +50,8 @@ class Main {
             });
 
             window.addEventListener('resize', function(event){
-                let commitTableHeight = window.innerHeight - 150;
-                $('#commitTable').css('height', commitTableHeight + 'px');
+                let commitColumnHeight = window.innerHeight - 150;
+                $('#commitColumn').css('height', commitColumnHeight + 'px');
             });
         });
     }
@@ -88,9 +88,6 @@ class Main {
     refreshCommitTable(results) {
         let self = this;
         if (self.filePath !== '') {
-            $('#commitTableBody tr').remove();
-            $('#commitTableBody').append('<tr><th><h4>Commits</h4></th></tr>');
-
             let branches = [];
             let entryList = [];
             results.forEach(function(result) {
