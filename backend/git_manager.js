@@ -118,6 +118,37 @@ module.exports = class GitManager {
         return results;
     }
 
+    async gitCheckout(branch) {
+        await this.repo.checkoutBranch(branch, {});
+    }
+
+    async gitCheckoutRemote(branch) {
+        let self = this;
+        let localName = branch.slice(branch.indexOf('/') + 1);
+        let localBranchAlreadyCheckedOut = false;
+
+        // First, figure out if the local branch is already created
+        await self.repo.getReferenceNames(Git.Reference.TYPE.ALL).then(function(nameArray) {
+            for (let branchName of nameArray) {
+                if (branchName.indexOf('refs/remotes') === -1 && branchName.indexOf(localName) >= 0) {
+                    localBranchAlreadyCheckedOut = true;
+                    break;
+                }
+            }
+        });
+
+        // If the local branch already exists, check it out. Otherwise, create a new branch
+        if (localBranchAlreadyCheckedOut) {
+            await self.gitCheckout(localName);
+        } else {
+            await self.repo.getBranchCommit(branch).then(async function (commit) {
+                await self.repo.createBranch(localName, commit, false).then(async function (localBranch) {
+                    await self.gitCheckout(localBranch);
+                });
+            });
+        }
+    }
+
     async gitFetch(win) {
         let self = this;
         await self.repo.fetchAll({

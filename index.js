@@ -38,6 +38,18 @@ function createWindow () {
         });
     });
 
+    ipcMain.on('git-checkout-message', (event, arg) => {
+        gitManager.gitCheckout(arg).then(function() {
+            win.webContents.send('refresh-message', []);
+        });
+    });
+
+    ipcMain.on('git-checkout-remote-message', (event, arg) => {
+        gitManager.gitCheckoutRemote(arg).then(function() {
+            win.webContents.send('refresh-message', []);
+        });
+    });
+
     ipcMain.on('git-fetch-message', (event, arg) => {
         gitManager.gitFetch(win).then(function() {
             win.webContents.send('refresh-message', []);
