@@ -113,7 +113,15 @@ class Main {
                 if (branchResult.startsWith('origin/')) {
                     $('#remoteTableBody').append('<tr><td>' + branchResult + '</td></tr>');
                 } else {
+                    let $button = $('<button />', {
+                        id: 'btn_' + branchResult,
+                        class: 'btn btn-primary btn-sm right',
+                        type: 'button',
+                        text: 'Ch',
+                        click: function() { alert($(this).attr('id')); }
+                    });
                     $('#localTableBody').append('<tr><td>' + branchResult + '</td></tr>');
+                    $('#localTableBody > tr > td:contains("' + branchResult + '")').append($button);
                 }
             });
         }
