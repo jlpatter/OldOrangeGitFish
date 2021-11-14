@@ -28,10 +28,9 @@ module.exports = class GitManager {
                 }
                 commitBranchDict = await self.buildBranchCommitsAndCommitBranchDict(gitReferences, branchCommits)
             });
-            let results = [];
             let allCommitLines = await self.getAllCommitLines(branchCommits);
             let masterLine = self.getMasterLine(allCommitLines);
-            return results;
+            return self.getPrintableResults(masterLine, commitBranchDict);
         }
     }
 
@@ -84,7 +83,37 @@ module.exports = class GitManager {
     }
 
     getMasterLine(allCommitLines) {
-        return [];
+        let self = this;
+        let masterLine = [];
+        for (let commitLine of allCommitLines) {
+            for (let commit of commitLine) {
+                if (!self.containsCommit(commit, masterLine)) {
+                    masterLine.push(commit);
+                }
+            }
+        }
+        return masterLine;
+    }
+
+    containsCommit(commit, line) {
+        for (let i = 0; i < line.length; i++) {
+            if (line[i].id().toString() === commit.id().toString()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    getPrintableResults(masterLine, commitBranchDict) {
+        let results = [];
+        for (let commit of masterLine) {
+            let branchList = []
+            if (commit.id().toString() in commitBranchDict) {
+                branchList = branchList.concat(commitBranchDict[commit.id().toString()]);
+            }
+            results.push([branchList, commit.message()]);
+        }
+        return results;
     }
 
     gitFetch(win) {
