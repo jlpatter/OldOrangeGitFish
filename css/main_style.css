@@ -5,6 +5,7 @@
 #commitColumn {
     display: block;
     height: 580px;
+    overflow-x: auto;
     overflow-y: auto;
 }
 

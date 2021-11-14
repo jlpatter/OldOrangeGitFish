@@ -19,6 +19,19 @@ class CanvasManager {
         let self = this;
 
         self.canvas.height = self.entryResults.length * 30;
+        if (self.entryResults.length > 0) {
+            let maxStringSize = 0;
+            self.ctx.font = "16px Arial";
+            self.entryResults.forEach(function(entryResult) {
+                let stringToCapture = '';
+                entryResult[0].forEach(function(branch) {
+                    stringToCapture += '(' + branch + ') ';
+                });
+                stringToCapture += entryResult[1];
+                maxStringSize = Math.max(maxStringSize, self.ctx.measureText(stringToCapture).width);
+            });
+            self.canvas.width = maxStringSize + 30;
+        }
         self.ctx.clearRect(0, 0, self.canvas.width, self.canvas.height);
 
         let y = 20;
