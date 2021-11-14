@@ -20,6 +20,12 @@ class Main {
                 }
             });
 
+            $('#pullBtn').click(function() {
+                if (self.filePath !== '') {
+                    ipcRenderer.send('git-pull-message', []);
+                }
+            });
+
             $('#openBtn').click(function() {
                 dialog.showOpenDialog({ properties: ['openDirectory'] }).then(function(result) {
                     self.filePath = result.filePaths[0];

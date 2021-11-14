@@ -118,17 +118,30 @@ module.exports = class GitManager {
         return results;
     }
 
-    gitFetch(win) {
+    async gitFetch(win) {
         let self = this;
-        self.repo.fetchAll({
+        await self.repo.fetchAll({
             downloadTags: true,
             callbacks: {
                 credentials: async function () {
                     return await self.getCred(win);
                 }
             }
-        }).then(function() {
-            console.log('Fetch Success!');
+        });
+    }
+
+    async gitPull(win) {
+        let self = this;
+        await self.repo.fetchAll({
+            callbacks: {
+                credentials: async function () {
+                    return await self.getCred(win);
+                }
+            }
+        }).then(async function () {
+            await self.repo.getCurrentBranch().then(async function (currentRef) {
+                await self.repo.mergeBranches(currentRef.shorthand(), 'origin/' + currentRef.shorthand());
+            });
         });
     }
 

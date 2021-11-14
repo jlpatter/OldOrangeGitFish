@@ -39,7 +39,15 @@ function createWindow () {
     });
 
     ipcMain.on('git-fetch-message', (event, arg) => {
-        gitManager.gitFetch(win);
+        gitManager.gitFetch(win).then(function() {
+            win.webContents.send('refresh-message', []);
+        });
+    });
+
+    ipcMain.on('git-pull-message', (event, arg) => {
+        gitManager.gitPull(win).then(function() {
+            win.webContents.send('refresh-message', []);
+        });
     });
 }
 
