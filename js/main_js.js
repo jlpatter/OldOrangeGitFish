@@ -92,21 +92,12 @@ class Main {
         let self = this;
         if (self.filePath !== '') {
             let branches = [];
-            let entryList = [];
             results.forEach(function(result) {
-                if (result[0].length > 0) {
-                    let stringToBuild = '';
-                    result[0].forEach(function(branch) {
-                        branches.push(branch);
-                        stringToBuild += '(' + branch + ') ';
-                    });
-                    stringToBuild += result[1];
-                    entryList.push(stringToBuild);
-                } else {
-                    entryList.push(result[1]);
-                }
+                result[0].forEach(function(branch) {
+                    branches.push(branch);
+                });
             });
-            self.canvasManager.updateCommitTable(entryList);
+            self.canvasManager.updateCommitTable(results);
 
             $('#localTableBody tr').remove();
             $('#remoteTableBody tr').remove();

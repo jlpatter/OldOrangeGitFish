@@ -1,9 +1,9 @@
 
 class CanvasRow {
-    constructor(x, y, text) {
+    constructor(x, y, entry) {
         this.x = x;
         this.y = y;
-        this.text = text;
+        this.entry = entry;
     }
 
     draw(ctx, prev) {
@@ -12,7 +12,13 @@ class CanvasRow {
         if (prev !== null) {
             self.drawLine(prev.x, prev.y, self.x, self.y, ctx);
         }
-        self.drawText(self.x + 15, self.y + 6, self.text, ctx);
+        let currentX = self.x + 15;
+        self.entry[0].forEach(function(branch) {
+            let branchText = '(' + branch + ') ';
+            self.drawText(currentX, self.y + 6, branchText, 'rgb(100, 100, 255)', ctx);
+            currentX += ctx.measureText(branchText).width;
+        });
+        self.drawText(currentX, self.y + 6, self.entry[1], 'rgb(255, 255, 255)', ctx);
     }
 
     drawLine(x, y, x2, y2, ctx) {
@@ -23,8 +29,8 @@ class CanvasRow {
         ctx.stroke();
     }
 
-    drawText(x, y, text, ctx) {
-        ctx.fillStyle = 'rgb(255, 255, 255)';
+    drawText(x, y, text, color, ctx) {
+        ctx.fillStyle = color;
         ctx.font = "16px Arial";
         ctx.fillText(text, x, y);
     }
