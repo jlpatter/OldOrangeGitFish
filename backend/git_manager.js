@@ -47,15 +47,15 @@ module.exports = class GitManager {
             });
             if (ref.isHead()) {
                 if (commitId in commitBranchDict) {
-                    commitBranchDict[commitId].push('* ' + ref.toString());
+                    commitBranchDict[commitId].push('* ' + ref.shorthand());
                 } else {
-                    commitBranchDict[commitId] = ['* ' + ref.toString()];
+                    commitBranchDict[commitId] = ['* ' + ref.shorthand()];
                 }
             } else {
                 if (commitId in commitBranchDict) {
-                    commitBranchDict[commitId].push(ref.toString());
+                    commitBranchDict[commitId].push(ref.shorthand());
                 } else {
-                    commitBranchDict[commitId] = [ref.toString()];
+                    commitBranchDict[commitId] = [ref.shorthand()];
                 }
             }
         }

@@ -104,10 +104,10 @@ class Main {
             $('#remoteTableBody').append('<tr><td><h4>Remote Branches</h4></td></tr>');
 
             branches.forEach(function(branchResult) {
-                if (branchResult.startsWith('refs/heads') || branchResult.startsWith('* refs/heads')) {
-                    $('#localTableBody').append('<tr><td>' + branchResult + '</td></tr>');
-                } else {
+                if (branchResult.startsWith('origin/')) {
                     $('#remoteTableBody').append('<tr><td>' + branchResult + '</td></tr>');
+                } else {
+                    $('#localTableBody').append('<tr><td>' + branchResult + '</td></tr>');
                 }
             });
         }
