@@ -145,6 +145,21 @@ module.exports = class GitManager {
         });
     }
 
+    async gitPush(win) {
+        let self = this;
+        await self.repo.getRemote('origin').then(async function (remote) {
+            await self.repo.getCurrentBranch().then(async function (currentRef) {
+                await remote.push([currentRef.toString()], {
+                    callbacks: {
+                        credentials: async function () {
+                            return await self.getCred(win);
+                        }
+                    }
+                });
+            });
+        });
+    }
+
     async getCred(win) {
         let username = '';
         let password = '';

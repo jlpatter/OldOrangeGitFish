@@ -26,6 +26,12 @@ class Main {
                 }
             });
 
+            $('#pushBtn').click(function() {
+                if (self.filePath !== '') {
+                    ipcRenderer.send('git-push-message', []);
+                }
+            });
+
             $('#openBtn').click(function() {
                 dialog.showOpenDialog({ properties: ['openDirectory'] }).then(function(result) {
                     self.filePath = result.filePaths[0];
