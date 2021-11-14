@@ -86,9 +86,10 @@ class Main {
             $mainTable.removeClass('invisible');
         }
         ipcRenderer.send('git-log-message', []);
+        ipcRenderer.send('git-diff-message', []);
     }
 
-    refreshCommitTable(results) {
+    refreshBranchAndCommitTables(results) {
         let self = this;
         if (self.filePath !== '') {
             let branches = [];
@@ -130,6 +131,20 @@ class Main {
             });
         }
     }
+
+    refreshStagingTables(results) {
+        console.log(results);
+
+        // Unstaged changes
+        results[0].forEach(function(unstagedFile) {
+            $('#unstagedTableBody').append('<tr><td>' + unstagedFile + '</td></tr>');
+        });
+
+        // Staged changes
+        results[1].forEach(function(stagedFile) {
+            $('#stagedTableBody').append('<tr><td>' + stagedFile + '</td></tr>');
+        });
+    }
 }
 
 let main = new Main()
@@ -144,7 +159,11 @@ ipcRenderer.on('refresh-message',(event, arg) => {
 });
 
 ipcRenderer.on('git-log-message',(event, arg) => {
-    main.refreshCommitTable(arg);
+    main.refreshBranchAndCommitTables(arg);
+});
+
+ipcRenderer.on('git-diff-message', (event, arg) => {
+    main.refreshStagingTables(arg);
 });
 
 ipcRenderer.on('git-fetch-creds',(event, arg) => {

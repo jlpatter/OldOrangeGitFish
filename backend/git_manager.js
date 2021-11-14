@@ -5,6 +5,7 @@ module.exports = class GitManager {
 
     constructor() {
         this.repo = null;
+        this.emptyTree = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
     }
 
     async gitOpen(filePath) {
@@ -12,6 +13,50 @@ module.exports = class GitManager {
         await Git.Repository.open(filePath).then(function (repo) {
             self.repo = repo;
         });
+    }
+
+    async gitDiff() {
+        let self = this;
+        let unstaged_files = [];
+        let staged_files = [];
+        if (self.repo !== null) {
+            let diff = await Git.Diff.indexToWorkdir(self.repo, null, {
+                flags: Git.Diff.OPTION.SHOW_UNTRACKED_CONTENT | Git.Diff.OPTION.RECURSE_UNTRACKED_DIRS
+            });
+            await diff.patches().then(function(patches) {
+                patches.forEach(function(patch) {
+                    unstaged_files.push(patch.newFile().path());
+                    // TODO: Use this to implement diffs someday.
+                    // patch.hunks().then(function(hunks) {
+                    //     hunks.forEach(function(hunk) {
+                    //         hunk.lines().then(function(lines) {
+                    //             console.log(hunk.header().trim());
+                    //             lines.forEach((line) => {
+                    //                 console.log(String.fromCharCode(line.origin()) + line.content().trim());
+                    //             });
+                    //         });
+                    //     });
+                    // });
+                });
+            });
+
+            staged_files = await self.getStagedChanges();
+        }
+        return [unstaged_files, staged_files];
+    }
+
+    async getStagedChanges() {
+        let self = this;
+        const head = await self.repo.getHeadCommit();
+        const tree = await (head ? head.getTree() : Git.Tree.lookup(self.repo, self.emptyTree));
+
+        const diff = await Git.Diff.treeToIndex(self.repo, tree, null);
+        const patches = await diff.patches();
+        let staged_files = [];
+        patches.forEach(function(patch) {
+            staged_files.push(patch.newFile().path());
+        });
+        return staged_files;
     }
 
     async gitLog() {

@@ -38,6 +38,12 @@ function createWindow () {
         });
     });
 
+    ipcMain.on('git-diff-message', (event, arg) => {
+        gitManager.gitDiff().then(function(results) {
+            win.webContents.send('git-diff-message', results);
+        });
+    });
+
     ipcMain.on('git-checkout-message', (event, arg) => {
         gitManager.gitCheckout(arg).then(function() {
             win.webContents.send('refresh-message', []);
