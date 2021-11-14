@@ -86,11 +86,13 @@ module.exports = class GitManager {
         let self = this;
         let masterLine = [];
         for (let commitLine of allCommitLines) {
+            let shortLine = [];
             for (let commit of commitLine) {
                 if (!self.containsCommit(commit, masterLine)) {
-                    masterLine.push(commit);
+                    shortLine.push(commit);
                 }
             }
+            masterLine = shortLine.concat(masterLine);
         }
         return masterLine;
     }
