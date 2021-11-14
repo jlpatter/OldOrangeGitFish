@@ -2,9 +2,9 @@
     float: right;
 }
 
-#commitTable {
+#commitColumn {
     display: block;
-    height: 620px;
+    height: 580px;
     overflow-y: auto;
 }
 

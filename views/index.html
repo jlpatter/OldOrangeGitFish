@@ -11,6 +11,8 @@
     <script>let $ = require('jquery');</script>
     <script>require('popper.js');</script>
     <script>require('bootstrap');</script>
+    <script type="text/javascript" src="../js/canvas_row.js"></script>
+    <script type="text/javascript" src="../js/canvas_manager.js"></script>
     <script type="text/javascript" src="../js/main_js.js"></script>
 
     <title>eGitGUI</title>
@@ -27,7 +29,7 @@
     <table id="mainTable" class="table table-dark invisible">
         <tbody>
         <tr>
-            <th>
+            <td>
                 <table>
                     <tbody>
                     <tr>
@@ -54,17 +56,14 @@
                     </tr>
                     </tbody>
                 </table>
-            </th>
-            <th>
-                <table id="commitTable" class="table table-dark table-hover table-striped">
-                    <tbody id="commitTableBody">
-                    <tr>
-                        <th><h4>Commits</h4></th>
-                    </tr>
-                    </tbody>
-                </table>
-            </th>
-            <th>
+            </td>
+            <td id="commitColumn">
+                <h4>Commits</h4>
+                <canvas id="mainCanvas">
+                    <p>ERROR: If you're seeing this, then something is borked.</p>
+                </canvas>
+            </td>
+            <td>
                 <table>
                     <tbody>
                     <tr>
@@ -76,7 +75,7 @@
                     </tbody>
                 </table>
                 <button id="commitBtn" type="button" class="btn btn-primary">Commit</button>
-            </th>
+            </td>
         </tr>
         </tbody>
     </table>

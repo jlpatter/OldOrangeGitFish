@@ -14,6 +14,8 @@ class Main {
     run() {
         let self = this;
         window.addEventListener('DOMContentLoaded', () => {
+            self.canvasManager = new CanvasManager();
+
             $('#fetchBtn').click(function() {
                 if (self.filePath !== '') {
                     ipcRenderer.send('git-fetch-message', []);
@@ -90,19 +92,21 @@ class Main {
             $('#commitTableBody').append('<tr><th><h4>Commits</h4></th></tr>');
 
             let branches = [];
+            let entryList = [];
             results.forEach(function(result) {
                 if (result[0].length > 0) {
-                    let stringToBuild = '<tr><td>';
+                    let stringToBuild = '';
                     result[0].forEach(function(branch) {
                         branches.push(branch);
                         stringToBuild += '(' + branch + ') ';
                     });
-                    stringToBuild += result[1] + '</td></tr>';
-                    $('#commitTableBody').append(stringToBuild);
+                    stringToBuild += result[1];
+                    entryList.push(stringToBuild);
                 } else {
-                    $('#commitTableBody').append('<tr><td>' + result[1] + '</td></tr>');
+                    entryList.push(result[1]);
                 }
             });
+            self.canvasManager.updateCommitTable(entryList);
 
             $('#localTableBody tr').remove();
             $('#remoteTableBody tr').remove();
