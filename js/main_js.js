@@ -147,8 +147,6 @@ class Main {
     }
 
     refreshStagingTables(results) {
-        console.log(results);
-
         $('#unstagedTableBody tr').remove();
         $('#stagedTableBody tr').remove();
         $('#unstagedTableBody').append('<tr><th><h4>Unstaged Changes</h4></th></tr>');
