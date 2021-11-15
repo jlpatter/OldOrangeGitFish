@@ -40,6 +40,14 @@ class Main {
                 }
             });
 
+            $('#commitBtn').click(function() {
+                if (self.filePath !== '') {
+                    let $messageTxt = $('#messageTxt');
+                    ipcRenderer.send('git-commit-message', $messageTxt.val());
+                    $messageTxt.val('');
+                }
+            });
+
             $('#openBtn').click(function() {
                 dialog.showOpenDialog({ properties: ['openDirectory'] }).then(function(result) {
                     self.filePath = result.filePaths[0];

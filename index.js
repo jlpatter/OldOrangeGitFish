@@ -50,6 +50,12 @@ function createWindow () {
         });
     });
 
+    ipcMain.on('git-commit-message', (event, arg) => {
+        gitManager.gitCommit(arg).then(function() {
+            win.webContents.send('refresh-message', []);
+        });
+    });
+
     ipcMain.on('git-checkout-message', (event, arg) => {
         gitManager.gitCheckout(arg).then(function() {
             win.webContents.send('refresh-message', []);
