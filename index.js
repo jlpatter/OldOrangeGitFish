@@ -44,6 +44,12 @@ function createWindow () {
         });
     });
 
+    ipcMain.on('git-stage-all-message', (event, arg) => {
+        gitManager.gitStageAll().then(function() {
+            win.webContents.send('refresh-message', []);
+        });
+    });
+
     ipcMain.on('git-checkout-message', (event, arg) => {
         gitManager.gitCheckout(arg).then(function() {
             win.webContents.send('refresh-message', []);

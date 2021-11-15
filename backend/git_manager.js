@@ -59,6 +59,26 @@ module.exports = class GitManager {
         return staged_files;
     }
 
+    async gitStageAll() {
+        let self = this;
+        let diff = await Git.Diff.indexToWorkdir(self.repo, null, {
+            flags: Git.Diff.OPTION.SHOW_UNTRACKED_CONTENT | Git.Diff.OPTION.RECURSE_UNTRACKED_DIRS
+        });
+        let index = await self.repo.refreshIndex();
+
+        await diff.patches().then(async function (patches) {
+            for (const patch of patches) {
+                if (patch.status() !== 2) {
+                    await index.addByPath(patch.newFile().path());
+                } else {
+                    await index.removeByPath(patch.newFile().path());
+                }
+            }
+        });
+
+        await index.write();
+    }
+
     async gitLog() {
         let self = this;
         if (self.repo !== null) {
