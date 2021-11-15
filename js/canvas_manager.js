@@ -30,7 +30,7 @@ class CanvasManager {
                 stringToCapture += entryResult[1];
                 maxStringSize = Math.max(maxStringSize, self.ctx.measureText(stringToCapture).width);
             });
-            self.canvas.width = maxStringSize + 30;
+            self.canvas.width = maxStringSize + 45;
         }
         self.ctx.clearRect(0, 0, self.canvas.width, self.canvas.height);
 
