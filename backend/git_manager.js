@@ -101,7 +101,7 @@ module.exports = class GitManager {
                         gitReferences[ref.toString()] = ref;
                     }
                 }
-                commitBranchDict = await self.buildBranchCommitsAndCommitBranchDict(gitReferences, branchCommits)
+                commitBranchDict = await self.buildBranchCommitsAndCommitBranchDict(gitReferences, branchCommits);
             });
             let allCommitLines = await self.getAllCommitLines(branchCommits);
             let masterLine = self.getMasterLine(allCommitLines);
@@ -116,21 +116,23 @@ module.exports = class GitManager {
             return gitReferences[key];
         });
         for (let ref of values) {
-            let commitId = await self.repo.getBranchCommit(ref).then(function (commit) {
-                branchCommits.push(commit);
-                return commit.id().toString();
-            });
-            if (ref.isHead()) {
-                if (commitId in commitBranchDict) {
-                    commitBranchDict[commitId].push('* ' + ref.shorthand());
+            if (!ref.toString().startsWith('refs/tags')) {
+                let commitId = await self.repo.getBranchCommit(ref).then(function (commit) {
+                    branchCommits.push(commit);
+                    return commit.id().toString();
+                });
+                if (ref.isHead()) {
+                    if (commitId in commitBranchDict) {
+                        commitBranchDict[commitId].push('* ' + ref.shorthand());
+                    } else {
+                        commitBranchDict[commitId] = ['* ' + ref.shorthand()];
+                    }
                 } else {
-                    commitBranchDict[commitId] = ['* ' + ref.shorthand()];
-                }
-            } else {
-                if (commitId in commitBranchDict) {
-                    commitBranchDict[commitId].push(ref.shorthand());
-                } else {
-                    commitBranchDict[commitId] = [ref.shorthand()];
+                    if (commitId in commitBranchDict) {
+                        commitBranchDict[commitId].push(ref.shorthand());
+                    } else {
+                        commitBranchDict[commitId] = [ref.shorthand()];
+                    }
                 }
             }
         }
