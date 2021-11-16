@@ -10,9 +10,11 @@ module.exports = class GitManager {
 
     async gitOpen(filePath) {
         let self = this;
-        await Git.Repository.open(filePath).then(function (repo) {
-            self.repo = repo;
-        });
+        if (filePath !== undefined) {
+            await Git.Repository.open(filePath).then(function (repo) {
+                self.repo = repo;
+            });
+        }
     }
 
     async gitDiff() {
