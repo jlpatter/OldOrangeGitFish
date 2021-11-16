@@ -105,9 +105,8 @@ module.exports = class GitManager {
                 }
                 commitBranchDict = await self.buildBranchCommitsAndCommitBranchDict(gitReferences, branchCommits);
             });
-            let allCommitLines = await self.getAllCommitLines(branchCommits);
-            let masterLine = self.getMasterLine(allCommitLines);
-            return self.getPrintableResults(masterLine, commitBranchDict);
+            let mainLine = await self.getAllCommitLines(branchCommits);
+            return self.getPrintableResults(mainLine, commitBranchDict);
         }
     }
 
@@ -142,47 +141,44 @@ module.exports = class GitManager {
     }
 
     async getAllCommitLines(branchCommits) {
-        let allCommitLines = [];
-        let index = 0;
-        for (let branchCommit of branchCommits) {
-            let history = branchCommit.history();
-
-            allCommitLines[index] = [];
-            await new Promise(function (resolve, reject) {
-                history.on('end', function (commits) {
-                    allCommitLines[index] = allCommitLines[index].concat(commits)
-                    resolve();
-                });
-
-                history.start();
-            });
-            index++;
-        }
-        return allCommitLines;
-    }
-
-    getMasterLine(allCommitLines) {
         let self = this;
-        let masterLine = [];
-        for (let commitLine of allCommitLines) {
-            let shortLine = [];
-            for (let commit of commitLine) {
-                if (!self.containsCommit(commit, masterLine)) {
-                    shortLine.push(commit);
+        let history = branchCommits[0].history();
+        let mainLine;
+        await new Promise(function (resolve, reject) {
+            history.on('end', function (commits) {
+                mainLine = commits;
+                resolve();
+            });
+
+            history.start();
+        });
+
+        for (let i = 1; i < branchCommits.length; i++) {
+            if (!self.containsCommit(branchCommits[i], mainLine)) {
+                let shortLine = [branchCommits[i]];
+                let child = branchCommits[i];
+                let isFinished = false;
+                while (!isFinished) {
+                    await child.getParents(10).then(function(parents) {
+                        if (parents.length > 2) {
+                            throw "I honestly didn't know a commit could have more then 2 parents...";
+                        } else if (parents.length === 0 || self.containsCommit(parents[0], mainLine)) {
+                            isFinished = true;
+                        } else {
+                            shortLine.push(parents[0]);
+                            child = parents[0];
+                        }
+                        // TODO: Implement merge commits by using parents[1]
+                    });
                 }
+                mainLine = shortLine.concat(mainLine);
             }
-            masterLine = shortLine.concat(masterLine);
         }
-        return masterLine;
+        return mainLine;
     }
 
     containsCommit(commit, line) {
-        for (let i = 0; i < line.length; i++) {
-            if (line[i].id().toString() === commit.id().toString()) {
-                return true;
-            }
-        }
-        return false;
+        return line.filter(e => e.id().toString() === commit.id().toString()).length > 0
     }
 
     getPrintableResults(masterLine, commitBranchDict) {
