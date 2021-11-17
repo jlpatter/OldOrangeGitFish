@@ -14,7 +14,7 @@ class Main {
     run() {
         let self = this;
         window.addEventListener('DOMContentLoaded', () => {
-            self.canvasManager = new CanvasManager();
+            self.svgManager = new SVGManager();
 
             $('#fetchBtn').click(function() {
                 if (self.filePath !== '') {
@@ -68,7 +68,7 @@ class Main {
                 let $commitColumn = $('#commitColumn');
                 $commitColumn.css('height', commitColumnHeight + 'px');
                 $('#commitTableSVG').attr('width', $commitColumn.width());
-                self.canvasManager.refreshCommitTable();
+                self.svgManager.refreshCommitTable();
             });
         });
     }
@@ -112,7 +112,7 @@ class Main {
                     branches.push(branch);
                 });
             });
-            self.canvasManager.updateCommitTable(results);
+            self.svgManager.updateCommitTable(results);
 
             $('#localTableBody tr').remove();
             $('#remoteTableBody tr').remove();

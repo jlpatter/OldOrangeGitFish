@@ -1,5 +1,5 @@
 
-class CanvasRow {
+class SVGRow {
     constructor(x, y, entry) {
         this.x = x;
         this.y = y;
