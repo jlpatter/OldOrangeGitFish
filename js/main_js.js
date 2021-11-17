@@ -67,7 +67,7 @@ class Main {
                 let commitColumnHeight = window.innerHeight - 150;
                 let $commitColumn = $('#commitColumn');
                 $commitColumn.css('height', commitColumnHeight + 'px');
-                $('#mainCanvas').attr('width', parseInt($commitColumn.css('width').slice(0, -2), 10));
+                $('#commitTableSVG').attr('width', $commitColumn.width());
                 self.canvasManager.refreshCommitTable();
             });
         });

@@ -6,45 +6,32 @@ class CanvasRow {
         this.entry = entry;
     }
 
-    draw(ctx, prev) {
+    draw($commitTableSVG, prev) {
         let self = this;
-        self.drawCircle(self.x, self.y, ctx);
+        let svgCircle = self.makeSVG('circle', {cx: self.x, cy: self.y, r: 10, stroke: 'blue', 'stroke-width': 1, fill: 'blue'});
+        $commitTableSVG.append(svgCircle);
         if (prev !== null) {
-            self.drawLine(prev.x, prev.y, self.x, self.y, ctx);
+            let svgLine = self.makeSVG('line', {x1: prev.x, y1: prev.y, x2: self.x, y2: self.y, style: 'stroke:rgb(0,0,255);stroke-width:4'});
+            $commitTableSVG.append(svgLine);
         }
         let currentX = self.x + 15;
         self.entry[0].forEach(function(branch) {
             let branchText = '(' + branch + ') ';
-            self.drawText(currentX, self.y + 6, branchText, 'rgb(100, 100, 255)', ctx);
-            currentX += ctx.measureText(branchText).width;
+            let svgTextElem = self.makeSVG('text', {x: currentX, y: self.y + 6, fill: 'rgb(100, 100, 255)'});
+            svgTextElem.textContent = branchText;
+            $commitTableSVG.append(svgTextElem);
+            currentX += svgTextElem.getBBox().width + 5;
         });
-        self.drawText(currentX, self.y + 6, self.entry[1], 'rgb(255, 255, 255)', ctx);
+
+        let entryElem = self.makeSVG('text', {x: currentX, y: self.y + 6, fill: 'white'});
+        entryElem.textContent = self.entry[1];
+        $commitTableSVG.append(entryElem);
     }
 
-    drawLine(x, y, x2, y2, ctx) {
-        ctx.strokeStyle = 'rgb(0, 0, 255)';
-        ctx.lineWidth = 3;
-        ctx.moveTo(x, y);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-    }
-
-    drawText(x, y, text, color, ctx) {
-        ctx.fillStyle = color;
-        ctx.font = "16px Arial";
-        ctx.fillText(text, x, y);
-    }
-
-    drawCircle(x, y, ctx) {
-        let self = this;
-        ctx.fillStyle = 'rgb(0, 0, 255)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.arc(x, y, 8, self.degToRad(0), self.degToRad(360), false);
-        ctx.fill();
-    }
-
-    degToRad(degrees) {
-        return degrees * Math.PI / 180;
+    makeSVG(tag, attrs) {
+        let el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+        for (let k in attrs)
+            el.setAttribute(k, attrs[k]);
+        return el;
     }
 }
