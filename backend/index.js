@@ -1,7 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const remoteMain = require('@electron/remote/main');
 const path = require('path');
-const GitManager = require('./backend/git_manager');
+const GitManager = require('./git_manager');
 
 const gitManager = new GitManager();
 
@@ -20,7 +20,7 @@ function createWindow () {
 
     remoteMain.enable(win.webContents);
 
-    win.loadFile('views/index.html');
+    win.loadFile('./frontend/views/index.html');
 
     ipcMain.on('login-message',(event, arg) => {
         win.webContents.send('login-message', arg);

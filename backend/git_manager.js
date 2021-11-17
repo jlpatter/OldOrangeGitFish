@@ -227,7 +227,7 @@ module.exports = class GitManager {
     async gitFetch(win) {
         let self = this;
         await self.repo.fetchAll({
-            downloadTags: true,
+            downloadTags: Git.Remote.AUTOTAG_OPTION.DOWNLOAD_TAGS_ALL,
             callbacks: {
                 credentials: async function () {
                     return await self.getCred(win);
