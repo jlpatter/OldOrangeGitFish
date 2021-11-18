@@ -29,6 +29,12 @@ function createWindow() {
     win.webContents.send('login-message', arg);
   });
 
+  ipcMain.on('git-init-message', (event, arg) => {
+    gitManager.gitInit(arg).then(function() {
+      win.webContents.send('refresh-message', []);
+    });
+  });
+
   ipcMain.on('git-open-message', (event, arg) => {
     gitManager.gitOpen(arg).then(function() {
       win.webContents.send('refresh-message', []);

@@ -59,6 +59,13 @@ class Main {
         }
       });
 
+      $('#initBtn').click(function() {
+        dialog.showOpenDialog({properties: ['openDirectory']}).then(function(result) {
+          self.filePath = result.filePaths[0];
+          ipcRenderer.send('git-init-message', result.filePaths[0]);
+        });
+      });
+
       $('#openBtn').click(function() {
         dialog.showOpenDialog({properties: ['openDirectory']}).then(function(result) {
           self.filePath = result.filePaths[0];

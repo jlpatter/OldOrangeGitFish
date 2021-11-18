@@ -15,6 +15,19 @@ module.exports = class GitManager {
   }
 
   /**
+   * Initializes a new repository at the given filePath.
+   * @param {string} filePath
+   */
+  async gitInit(filePath) {
+    const self = this;
+    if (filePath !== undefined) {
+      await Git.Repository.init(filePath, 0).then(function(repo) {
+        self.repo = repo;
+      });
+    }
+  }
+
+  /**
    * Opens a repository in the given filepath.
    * @param {string} filePath The directory containing the .git folder
    * @return {Promise<void>}
@@ -112,11 +125,8 @@ module.exports = class GitManager {
   async gitCommit(message) {
     const self = this;
     const author = Git.Signature.now('Joshua Patterson', 'jleegippies@gmail.com');
-    const index = await self.repo.refreshIndex();
-    const changes = await index.writeTree();
-    const head = await Git.Reference.nameToId(self.repo, 'HEAD');
-    const parent = await self.repo.getCommit(head);
-    await self.repo.createCommit('HEAD', author, author, message, changes, [parent]);
+    const files = await self.getStagedChanges();
+    await self.repo.createCommitOnHead(files, author, author, message);
   }
 
   /**
@@ -185,36 +195,38 @@ module.exports = class GitManager {
    */
   async getAllCommitLines(branchCommits) {
     const self = this;
-    const history = branchCommits[0].history();
-    let mainLine;
-    await new Promise(function(resolve, reject) {
-      history.on('end', function(commits) {
-        mainLine = commits;
-        resolve();
+    let mainLine = [];
+    if (branchCommits.length > 0) {
+      const history = branchCommits[0].history();
+      await new Promise(function(resolve, reject) {
+        history.on('end', function(commits) {
+          mainLine = commits;
+          resolve();
+        });
+
+        history.start();
       });
 
-      history.start();
-    });
-
-    for (let i = 1; i < branchCommits.length; i++) {
-      if (!self.containsCommit(branchCommits[i], mainLine)) {
-        const shortLine = [branchCommits[i]];
-        let child = branchCommits[i];
-        let isFinished = false;
-        while (!isFinished) {
-          await child.getParents(10).then(function(parents) {
-            if (parents.length > 2) {
-              throw new RangeError('I honestly didn\'t know a commit could have more than 2 parents...');
-            } else if (parents.length === 0 || self.containsCommit(parents[0], mainLine)) {
-              isFinished = true;
-            } else {
-              shortLine.push(parents[0]);
-              child = parents[0];
-            }
-            // TODO: Implement merge commits by using parents[1]
-          });
+      for (let i = 1; i < branchCommits.length; i++) {
+        if (!self.containsCommit(branchCommits[i], mainLine)) {
+          const shortLine = [branchCommits[i]];
+          let child = branchCommits[i];
+          let isFinished = false;
+          while (!isFinished) {
+            await child.getParents(10).then(function(parents) {
+              if (parents.length > 2) {
+                throw new RangeError('I honestly didn\'t know a commit could have more than 2 parents...');
+              } else if (parents.length === 0 || self.containsCommit(parents[0], mainLine)) {
+                isFinished = true;
+              } else {
+                shortLine.push(parents[0]);
+                child = parents[0];
+              }
+              // TODO: Implement merge commits by using parents[1]
+            });
+          }
+          mainLine = shortLine.concat(mainLine);
         }
-        mainLine = shortLine.concat(mainLine);
       }
     }
     return mainLine;
