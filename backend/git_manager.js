@@ -2,11 +2,20 @@ const {ipcMain} = require('electron');
 const Git = require('nodegit');
 
 module.exports = class GitManager {
+  /**
+   * Constructs a new git manager.
+   * @constructor
+   */
   constructor() {
     this.repo = null;
     this.emptyTree = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
   }
 
+  /**
+   * Opens a repository in the given filepath.
+   * @param {string} filePath The directory containing the .git folder
+   * @return {Promise<void>}
+   */
   async gitOpen(filePath) {
     const self = this;
     if (filePath !== undefined) {
@@ -16,6 +25,10 @@ module.exports = class GitManager {
     }
   }
 
+  /**
+   * Gets the unstaged and staged files.
+   * @return {Promise}
+   */
   async gitDiff() {
     const self = this;
     const unstagedFiles = [];
@@ -46,6 +59,10 @@ module.exports = class GitManager {
     return [unstagedFiles, stagedFiles];
   }
 
+  /**
+   * Gets the staged files.
+   * @return {Promise<*[]>}
+   */
   async getStagedChanges() {
     const self = this;
     const head = await self.repo.getHeadCommit();
@@ -53,13 +70,17 @@ module.exports = class GitManager {
 
     const diff = await Git.Diff.treeToIndex(self.repo, tree, null);
     const patches = await diff.patches();
-    const staged_files = [];
+    const stagedFiles = [];
     patches.forEach(function(patch) {
-      staged_files.push(patch.newFile().path());
+      stagedFiles.push(patch.newFile().path());
     });
-    return staged_files;
+    return stagedFiles;
   }
 
+  /**
+   * Stages all changes that are unstaged
+   * @return {Promise<void>}
+   */
   async gitStageAll() {
     const self = this;
     const diff = await Git.Diff.indexToWorkdir(self.repo, null, {
@@ -80,6 +101,11 @@ module.exports = class GitManager {
     await index.write();
   }
 
+  /**
+   * Commmits staged changes to the branch.
+   * @param {string} message The message to use for the commit.
+   * @return {Promise<void>}
+   */
   async gitCommit(message) {
     const self = this;
     const author = Git.Signature.now('Joshua Patterson', 'jleegippies@gmail.com');
@@ -90,6 +116,10 @@ module.exports = class GitManager {
     await self.repo.createCommit('HEAD', author, author, message, changes, [parent]);
   }
 
+  /**
+   * Gets the log of commits to send to the main commit table.
+   * @return {Promise<*[]>}
+   */
   async gitLog() {
     const self = this;
     if (self.repo !== null) {
@@ -109,6 +139,12 @@ module.exports = class GitManager {
     }
   }
 
+  /**
+   * Gets the commits from branches and adds them to the branchCommits variable.
+   * @param {Array<string>} gitReferences Branches and tags
+   * @param {Array<Commit>} branchCommits The variable used to store branch commits
+   * @return {Promise<{}>}
+   */
   async buildBranchCommitsAndCommitBranchDict(gitReferences, branchCommits) {
     const self = this;
     const commitBranchDict = {};
@@ -139,6 +175,11 @@ module.exports = class GitManager {
     return commitBranchDict;
   }
 
+  /**
+   * Uses the branchCommits to get the commit 'lines', which are lines of commits.
+   * @param {Array<Commit>} branchCommits
+   * @return {Promise<*[]>}
+   */
   async getAllCommitLines(branchCommits) {
     const self = this;
     const history = branchCommits[0].history();
@@ -160,7 +201,7 @@ module.exports = class GitManager {
         while (!isFinished) {
           await child.getParents(10).then(function(parents) {
             if (parents.length > 2) {
-              throw 'I honestly didn\'t know a commit could have more then 2 parents...';
+              throw new RangeError('I honestly didn\'t know a commit could have more than 2 parents...');
             } else if (parents.length === 0 || self.containsCommit(parents[0], mainLine)) {
               isFinished = true;
             } else {
@@ -176,10 +217,22 @@ module.exports = class GitManager {
     return mainLine;
   }
 
+  /**
+   * Checks if the commit is contained in the commit line.
+   * @param {Commit} commit
+   * @param {Array<Commit>} line
+   * @return {boolean}
+   */
   containsCommit(commit, line) {
     return line.filter((e) => e.id().toString() === commit.id().toString()).length > 0;
   }
 
+  /**
+   * Pairs a branchList to a particular commit and returns the string values.
+   * @param {Array} masterLine
+   * @param {Object} commitBranchDict
+   * @return {*[]}
+   */
   getPrintableResults(masterLine, commitBranchDict) {
     const results = [];
     for (const commit of masterLine) {
@@ -192,10 +245,21 @@ module.exports = class GitManager {
     return results;
   }
 
+  /**
+   * Checks out a branch.
+   * @param {string | Reference} branch
+   * @return {Promise<void>}
+   */
   async gitCheckout(branch) {
     await this.repo.checkoutBranch(branch, {});
   }
 
+  /**
+   * Checks out a remote branch by creating a local branch and checking
+   * that out instead.
+   * @param {string} branch
+   * @return {Promise<void>}
+   */
   async gitCheckoutRemote(branch) {
     const self = this;
     const localName = branch.slice(branch.indexOf('/') + 1);
@@ -223,6 +287,11 @@ module.exports = class GitManager {
     }
   }
 
+  /**
+   * Fetches from the remote.
+   * @param {BrowserWindow} win The main window
+   * @return {Promise<void>}
+   */
   async gitFetch(win) {
     const self = this;
     await self.repo.fetchAll({
@@ -235,6 +304,11 @@ module.exports = class GitManager {
     });
   }
 
+  /**
+   * Pulls down from the remote.
+   * @param {BrowserWindow} win
+   * @return {Promise<void>}
+   */
   async gitPull(win) {
     const self = this;
     await self.repo.fetchAll({
@@ -250,6 +324,11 @@ module.exports = class GitManager {
     });
   }
 
+  /**
+   * Pushes the local branch to the remote.
+   * @param {BrowserWindow} win
+   * @return {Promise<void>}
+   */
   async gitPush(win) {
     const self = this;
     await self.repo.getRemote('origin').then(async function(remote) {
@@ -265,6 +344,11 @@ module.exports = class GitManager {
     });
   }
 
+  /**
+   * Gets the credentials for remote operations.
+   * @param {BrowserWindow} win
+   * @return {Promise<*>}
+   */
   async getCred(win) {
     let username = '';
     let password = '';
