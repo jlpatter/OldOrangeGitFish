@@ -24,15 +24,14 @@
         <button id="stageAllBtn" type="button" class="btn btn-primary right btn-sm">Stage All</button>
     </div>
 
-    <table id="mainTable" class="table table-dark invisible">
-        <tbody>
-        <tr>
-            <td>
-                <table>
+    <div id="mainTable" class="container">
+        <div class="row">
+            <div class="col-3">
+                <table class="table table-borderless">
                     <tbody>
                     <tr>
                         <td>
-                            <table id="localTable" class="table table-dark table-hover table-sm">
+                            <table id="localTable" class="table table-borderless table-responsive table-dark table-hover table-sm">
                                 <tbody id="localTableBody">
                                 <tr>
                                     <th><h4>Local Branches</h4></th>
@@ -43,7 +42,7 @@
                     </tr>
                     <tr>
                         <td>
-                            <table id="remoteTable" class="table table-dark table-hover table-sm">
+                            <table id="remoteTable" class="table table-borderless table-responsive table-dark table-hover table-sm">
                                 <tbody id="remoteTableBody">
                                 <tr>
                                     <th><h4>Remote Branches</h4></th>
@@ -54,17 +53,19 @@
                     </tr>
                     </tbody>
                 </table>
-            </td>
-            <td id="commitColumn">
-                <h4>Commits</h4>
-                <svg id="commitTableSVG" width="500" height="500"></svg>
-            </td>
-            <td>
-                <table>
+            </div>
+            <div class="col-6">
+                <div id="commitColumn">
+                    <h4>Commits</h4>
+                    <svg id="commitTableSVG" width="500" height="500"></svg>
+                </div>
+            </div>
+            <div class="col-3">
+                <table class="table table-borderless container col-4">
                     <tbody>
                     <tr>
                         <td>
-                            <table id="unstagedTable" class="table table-dark table-hover table-sm">
+                            <table id="unstagedTable" class="table table-borderless table-responsive table-dark table-sm">
                                 <tbody id="unstagedTableBody">
                                 <tr>
                                     <th><h4>Unstaged Changes</h4></th>
@@ -75,7 +76,7 @@
                     </tr>
                     <tr>
                         <td>
-                            <table id="stagedTable" class="table table-dark table-hover table-sm">
+                            <table id="stagedTable" class="table table-borderless table-responsive table-dark table-sm">
                                 <tbody id="stagedTableBody">
                                 <tr>
                                     <th><h4>Staged Changes</h4></th>
@@ -84,16 +85,19 @@
                             </table>
                         </td>
                     </tr>
+                    <tr>
+                        <td>
+                            <label>
+                                Message: <input id="messageTxt" type="text" />
+                            </label>
+                            <button id="commitBtn" type="button" class="btn btn-primary btn-sm">Commit</button>
+                        </td>
+                    </tr>
                     </tbody>
                 </table>
-                <label>
-                    Message: <input id="messageTxt" type="text" />
-                </label>
-                <button id="commitBtn" type="button" class="btn btn-primary btn-sm">Commit</button>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+            </div>
+        </div>
+    </div>
 
     <div class="container">
         <button id="initBtn" type="button" class="btn btn-primary btn-sm">Init</button>

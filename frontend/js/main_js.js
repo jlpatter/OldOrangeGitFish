@@ -80,14 +80,6 @@ class Main {
       $('#exitBtn').click(function() {
         app.quit();
       });
-
-      window.addEventListener('resize', function(event) {
-        const commitColumnHeight = window.innerHeight - 150;
-        const $commitColumn = $('#commitColumn');
-        $commitColumn.css('height', commitColumnHeight + 'px');
-        $('#commitTableSVG').attr('width', $commitColumn.width());
-        self.svgManager.refreshCommitTable();
-      });
     });
   }
 
