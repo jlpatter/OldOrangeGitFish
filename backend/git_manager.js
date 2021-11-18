@@ -1,6 +1,9 @@
 const {ipcMain} = require('electron');
 const Git = require('nodegit');
 
+/**
+ * A wrapper for nodegit that performs various git operations.
+ */
 module.exports = class GitManager {
   /**
    * Constructs a new git manager.

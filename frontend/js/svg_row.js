@@ -1,11 +1,24 @@
-
-class SVGRow {
+/**
+ * A row in the svg table.
+ */
+module.exports = class SVGRow {
+  /**
+   * Construct the svg row
+   * @param {int} x
+   * @param {int} y
+   * @param {Array} entry
+   */
   constructor(x, y, entry) {
     this.x = x;
     this.y = y;
     this.entry = entry;
   }
 
+  /**
+   * Draw each of the components of the svg row.
+   * @param {jQuery} $commitTableSVG
+   * @param {SVGRow} prev
+   */
   draw($commitTableSVG, prev) {
     const self = this;
     const svgCircle = self.makeSVG('circle', {'cx': self.x, 'cy': self.y, 'r': 10, 'stroke': 'blue', 'stroke-width': 1, 'fill': 'blue'});
@@ -28,11 +41,18 @@ class SVGRow {
     $commitTableSVG.append(entryElem);
   }
 
+  /**
+   * Makes an SVG element
+   * @param {string} tag
+   * @param {Object} attrs
+   * @return {*}
+   */
   makeSVG(tag, attrs) {
     const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    // eslint-disable-next-line guard-for-in
     for (const k in attrs) {
       el.setAttribute(k, attrs[k]);
     }
     return el;
   }
-}
+};

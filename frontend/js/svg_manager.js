@@ -1,15 +1,29 @@
+const SVGRow = require('../js/svg_row');
 
-class SVGManager {
+/**
+ * A class to manage the svg element.
+ */
+module.exports = class SVGManager {
+  /**
+   * Constructs the svg manager.
+   */
   constructor() {
     this.$commitTableSVG = $('#commitTableSVG');
     this.entryResults = [];
   }
 
+  /**
+   * Refreshes the commit table with new entry results.
+   * @param {Array} entryResults
+   */
   updateCommitTable(entryResults) {
     this.entryResults = entryResults;
     this.refreshCommitTable();
   }
 
+  /**
+   * Refreshes the commit table. Can be called on its own for a passive refresh.
+   */
   refreshCommitTable() {
     const self = this;
 
@@ -26,4 +40,4 @@ class SVGManager {
       y += 30;
     }
   }
-}
+};

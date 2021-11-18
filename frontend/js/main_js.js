@@ -4,13 +4,24 @@ const remoteMain = require('@electron/remote/main');
 const dialog = remote.dialog;
 const app = remote.app;
 const BrowserWindow = remote.BrowserWindow;
+const SVGManager = require('../js/svg_manager.js');
 
+/**
+ * The Main js class used in the main window.
+ */
 class Main {
+  /**
+   * Constructs a new main object.
+   */
   constructor() {
     this.filePath = '';
     this.username = '';
     this.password = '';
   }
+
+  /**
+   * Runs the primary functions of the application.
+   */
   run() {
     const self = this;
     window.addEventListener('DOMContentLoaded', () => {
@@ -73,6 +84,10 @@ class Main {
     });
   }
 
+  /**
+   * Opens the login window and waits until it's closed
+   * @return {Promise<void>}
+   */
   async openLoginWindow() {
     const win = new BrowserWindow({
       width: 800,
@@ -94,6 +109,9 @@ class Main {
     });
   }
 
+  /**
+   * Refreshes the branch tables, commit table, and staging tables.
+   */
   refreshAll() {
     const $mainTable = $('#mainTable');
     if ($mainTable.hasClass('invisible')) {
@@ -103,6 +121,10 @@ class Main {
     ipcRenderer.send('git-diff-message', []);
   }
 
+  /**
+   * Refreshes the branch tables and commit table.
+   * @param {Array} results
+   */
   refreshBranchAndCommitTables(results) {
     const self = this;
     if (self.filePath !== '') {
@@ -131,13 +153,13 @@ class Main {
 
         if (branchResult.startsWith('origin/')) {
           $button.click(function() {
-            ipcRenderer.send('git-checkout-remote-message', $(this).attr('value'));
+            ipcRenderer.send('git-checkout-remote-message', $button.attr('value'));
           });
           $('#remoteTableBody').append('<tr><td>' + branchResult + '</td></tr>');
           $('#remoteTableBody > tr > td:contains("' + branchResult + '")').append($button);
         } else {
           $button.click(function() {
-            ipcRenderer.send('git-checkout-message', $(this).attr('value'));
+            ipcRenderer.send('git-checkout-message', $button.attr('value'));
           });
           $('#localTableBody').append('<tr><td>' + branchResult + '</td></tr>');
           $('#localTableBody > tr > td:contains("' + branchResult + '")').append($button);
@@ -146,6 +168,10 @@ class Main {
     }
   }
 
+  /**
+   * Refreshes the staging tables.
+   * @param {Array} results
+   */
   refreshStagingTables(results) {
     $('#unstagedTableBody tr').remove();
     $('#stagedTableBody tr').remove();

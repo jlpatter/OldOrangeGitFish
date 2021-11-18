@@ -1,6 +1,12 @@
 const ipcRenderer = require('electron').ipcRenderer;
 
+/**
+ * User and Password prompt.
+ */
 class UPPrompt {
+  /**
+   * Sets up the login and cancel buttons.
+   */
   run() {
     window.addEventListener('DOMContentLoaded', () => {
       $('#loginBtn').click(function() {
