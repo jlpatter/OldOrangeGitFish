@@ -7,6 +7,9 @@ const gitManager = new GitManager();
 
 remoteMain.initialize();
 
+/**
+ * Creates the main window for the application.
+ */
 function createWindow() {
   const win = new BrowserWindow({
     width: 1280,
