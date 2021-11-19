@@ -112,10 +112,6 @@ class Main {
    * Refreshes the branch tables, commit table, and staging tables.
    */
   refreshAll() {
-    const $mainTable = $('#mainTable');
-    if ($mainTable.hasClass('invisible')) {
-      $mainTable.removeClass('invisible');
-    }
     ipcRenderer.send('git-log-message', []);
     ipcRenderer.send('git-diff-message', []);
   }
