@@ -6,13 +6,15 @@ module.exports = class SVGRow {
    * Construct the svg row
    * @param {string} sha
    * @param {string} parentSha
+   * @param {int} indent
    * @param {int} x
    * @param {int} y
    * @param {Array} entry
    */
-  constructor(sha, parentSha, x, y, entry) {
+  constructor(sha, parentSha, indent, x, y, entry) {
     this.sha = sha;
     this.parentSha = parentSha;
+    this.indent = indent;
     this.x = x;
     this.y = y;
     this.entry = entry;
@@ -43,16 +45,17 @@ module.exports = class SVGRow {
    */
   draw($commitTableSVG, prev) {
     const self = this;
-    const svgCircle = self.makeSVG('circle', {'cx': self.x, 'cy': self.y, 'r': 10, 'stroke': 'blue', 'stroke-width': 1, 'fill': 'blue'});
+    const color = self.getColor();
+    const svgCircle = self.makeSVG('circle', {'cx': self.x, 'cy': self.y, 'r': 10, 'stroke': color, 'stroke-width': 1, 'fill': color});
     $commitTableSVG.append(svgCircle);
     if (prev !== null) {
-      const svgLine = self.makeSVG('line', {x1: prev.x, y1: prev.y, x2: self.x, y2: self.y, style: 'stroke:rgb(0,0,255);stroke-width:4'});
+      const svgLine = self.makeSVG('line', {x1: prev.x, y1: prev.y, x2: self.x, y2: self.y, style: 'stroke:' + color + ';stroke-width:4'});
       $commitTableSVG.append(svgLine);
     }
     let currentX = self.x + 15;
     self.entry[0].forEach(function(branch) {
       const branchText = '(' + branch + ') ';
-      const svgTextElem = self.makeSVG('text', {x: currentX, y: self.y + 6, fill: 'rgb(100, 100, 255)'});
+      const svgTextElem = self.makeSVG('text', {x: currentX, y: self.y + 6, fill: color});
       svgTextElem.textContent = branchText;
       $commitTableSVG.append(svgTextElem);
       currentX += svgTextElem.getBBox().width + 5;
@@ -76,5 +79,23 @@ module.exports = class SVGRow {
       el.setAttribute(k, attrs[k]);
     }
     return el;
+  }
+
+  /**
+   * Gets the color of the row based on the indent
+   * @return {string}
+   */
+  getColor() {
+    const self = this;
+    const colorNum = self.indent % 4;
+    if (colorNum === 0) {
+      return '\#00CC19';
+    } else if (colorNum === 1) {
+      return '\#0198A6';
+    } else if (colorNum === 2) {
+      return '\#FF7800';
+    } else {
+      return '\#FF0D00';
+    }
   }
 };
