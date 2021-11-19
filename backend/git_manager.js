@@ -367,7 +367,7 @@ module.exports = class GitManager {
       downloadTags: Git.Remote.AUTOTAG_OPTION.DOWNLOAD_TAGS_ALL,
       callbacks: {
         credentials: async function() {
-          return await self.getCred(win);
+          return await self.getCredential(win);
         },
       },
     });
@@ -383,7 +383,7 @@ module.exports = class GitManager {
     await self.repo.fetchAll({
       callbacks: {
         credentials: async function() {
-          return await self.getCred(win);
+          return await self.getCredential(win);
         },
       },
     }).then(async function() {
@@ -405,7 +405,7 @@ module.exports = class GitManager {
         await remote.push([currentRef.toString()], {
           callbacks: {
             credentials: async function() {
-              return await self.getCred(win);
+              return await self.getCredential(win);
             },
           },
         });
@@ -418,7 +418,7 @@ module.exports = class GitManager {
    * @param {BrowserWindow} win
    * @return {Promise<*>}
    */
-  async getCred(win) {
+  async getCredential(win) {
     let username = '';
     let password = '';
 
@@ -431,6 +431,6 @@ module.exports = class GitManager {
       });
     });
 
-    return Git.Cred.userpassPlaintextNew(username, password);
+    return Git.Credential.userpassPlaintextNew(username, password);
   }
 };
