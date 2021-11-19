@@ -1,5 +1,6 @@
 const {ipcMain} = require('electron');
 const Git = require('nodegit');
+const CommitWrapper = require('./commit_wrapper');
 
 /**
  * A wrapper for nodegit that performs various git operations.
@@ -198,18 +199,25 @@ module.exports = class GitManager {
     let mainLine = [];
     if (branchCommits.length > 0) {
       const history = branchCommits[0].history();
+      let tmpMainLine = [];
       await new Promise(function(resolve, reject) {
         history.on('end', function(commits) {
-          mainLine = commits;
+          tmpMainLine = commits;
           resolve();
         });
 
         history.start();
       });
 
+      let prevMainLineCommit = null;
+      for (let i = 0; i < tmpMainLine.length; i++) {
+        mainLine.push(new CommitWrapper(0, tmpMainLine[i], prevMainLineCommit));
+        prevMainLineCommit = tmpMainLine[i];
+      }
+
       for (let i = 1; i < branchCommits.length; i++) {
         if (!self.containsCommit(branchCommits[i], mainLine)) {
-          const shortLine = [branchCommits[i]];
+          const shortLine = [new CommitWrapper(-1, branchCommits[i], null)];
           let child = branchCommits[i];
           let isFinished = false;
           let mainLineCommit = null;
@@ -223,12 +231,24 @@ module.exports = class GitManager {
                 isFinished = true;
                 mainLineCommit = parents[0];
               } else {
-                shortLine.push(parents[0]);
+                shortLine.push(new CommitWrapper(-1, parents[0], null));
                 child = parents[0];
               }
               // TODO: Implement merge commits by using parents[1]
             });
           }
+
+          for (let i = 0; i < shortLine.length; i++) {
+            shortLine[i].indent = mainLine[self.lineIndexOf(mainLineCommit, mainLine)].indent + 1;
+            await shortLine[i].commit.getParents(10).then(function(parents) {
+              if (parents.length > 2) {
+                throw new RangeError('I honestly didn\'t know a commit could have more than 2 parents...');
+              } else if (parents.length === 1 || parents.length === 2) {
+                shortLine[i].parentCommit = parents[0];
+              }
+            });
+          }
+
           if (mainLineCommit !== null) {
             mainLine.splice(self.lineIndexOf(mainLineCommit, mainLine), 0, ...shortLine);
           } else {
@@ -243,22 +263,22 @@ module.exports = class GitManager {
   /**
    * Checks if the commit is contained in the commit line.
    * @param {Commit} commit
-   * @param {Array<Commit>} line
+   * @param {Array<CommitWrapper>} line
    * @return {boolean}
    */
   containsCommit(commit, line) {
-    return line.filter((e) => e.id().toString() === commit.id().toString()).length > 0;
+    return line.filter((e) => e.commit.id().toString() === commit.id().toString()).length > 0;
   }
 
   /**
    * Gets the index of the commit from the commit line.
    * @param {Commit} commit
-   * @param {Array<Commit>} line
+   * @param {Array<CommitWrapper>} line
    * @return {number}
    */
   lineIndexOf(commit, line) {
     for (let i = 0; i < line.length; i++) {
-      if (line[i].id().toString() === commit.id().toString()) {
+      if (line[i].commit.id().toString() === commit.id().toString()) {
         return i;
       }
     }
@@ -267,18 +287,18 @@ module.exports = class GitManager {
 
   /**
    * Pairs a branchList to a particular commit and returns the string values.
-   * @param {Array} masterLine
+   * @param {Array<CommitWrapper>} masterLine
    * @param {Object} commitBranchDict
    * @return {*[]}
    */
   getPrintableResults(masterLine, commitBranchDict) {
     const results = [];
-    for (const commit of masterLine) {
+    for (const wrappedCommit of masterLine) {
       let branchList = [];
-      if (commit.id().toString() in commitBranchDict) {
-        branchList = branchList.concat(commitBranchDict[commit.id().toString()]);
+      if (wrappedCommit.commit.id().toString() in commitBranchDict) {
+        branchList = branchList.concat(commitBranchDict[wrappedCommit.commit.id().toString()]);
       }
-      results.push([branchList, commit.message()]);
+      results.push([branchList, wrappedCommit.getParseableFormat()]);
     }
     return results;
   }

@@ -31,13 +31,14 @@ module.exports = class SVGManager {
     self.$commitTableSVG.attr('height', self.entryResults.length * 30);
 
     let y = 20;
-    let prevSVGRow = null;
+    const svgRows = [];
     for (const entry of self.entryResults) {
-      const svgRow = new SVGRow(20, y, entry);
-      svgRow.draw(self.$commitTableSVG, prevSVGRow);
-      prevSVGRow = svgRow;
-
+      svgRows.push(new SVGRow(entry[1][2], entry[1][3], 20 + (entry[1][0] * 20), y, entry));
       y += 30;
+    }
+
+    for (const svgRow of svgRows) {
+      svgRow.draw(self.$commitTableSVG, svgRow.getParentSVGRow(svgRows));
     }
   }
 };

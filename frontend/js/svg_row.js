@@ -4,14 +4,36 @@
 module.exports = class SVGRow {
   /**
    * Construct the svg row
+   * @param {string} sha
+   * @param {string} parentSha
    * @param {int} x
    * @param {int} y
    * @param {Array} entry
    */
-  constructor(x, y, entry) {
+  constructor(sha, parentSha, x, y, entry) {
+    this.sha = sha;
+    this.parentSha = parentSha;
     this.x = x;
     this.y = y;
     this.entry = entry;
+  }
+
+  /**
+   * Gets the parent SVGRow
+   * @param {Array<SVGRow>} array
+   * @return {SVGRow}
+   */
+  getParentSVGRow(array) {
+    const self = this;
+    if (self.parentSha === '') {
+      return null;
+    }
+    for (let i = 0; i < array.length; i++) {
+      if (self.parentSha === array[i].sha) {
+        return array[i];
+      }
+    }
+    return null;
   }
 
   /**
@@ -37,7 +59,7 @@ module.exports = class SVGRow {
     });
 
     const entryElem = self.makeSVG('text', {x: currentX, y: self.y + 6, fill: 'white'});
-    entryElem.textContent = self.entry[1];
+    entryElem.textContent = self.entry[1][1];
     $commitTableSVG.append(entryElem);
   }
 
