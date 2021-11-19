@@ -8,6 +8,12 @@
     overflow: auto;
 }
 
+.unselectable {
+    user-select: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+}
+
 ::-webkit-scrollbar {
     width: 12px;
 }

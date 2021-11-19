@@ -138,26 +138,18 @@ class Main {
 
       branches.forEach(function(branchResult) {
         const shortResult = branchResult.startsWith('* ') ? branchResult.slice(2) : branchResult;
-        const $button = $('<button />', {
-          id: 'btn_' + shortResult,
-          class: 'btn btn-primary btn-sm right',
-          type: 'button',
-          text: 'Ch',
-          value: shortResult,
-        });
+        const $branchResult = $('<tr class="unselectable"><td>' + branchResult + '</td></tr>');
 
         if (branchResult.startsWith('origin/')) {
-          $button.click(function() {
-            ipcRenderer.send('git-checkout-remote-message', $button.attr('value'));
+          $branchResult.on('dblclick', function() {
+            ipcRenderer.send('git-checkout-remote-message', shortResult);
           });
-          $('#remoteTableBody').append('<tr><td>' + branchResult + '</td></tr>');
-          $('#remoteTableBody > tr > td:contains("' + branchResult + '")').append($button);
+          $('#remoteTableBody').append($branchResult);
         } else {
-          $button.click(function() {
-            ipcRenderer.send('git-checkout-message', $button.attr('value'));
+          $branchResult.on('dblclick', function() {
+            ipcRenderer.send('git-checkout-message', shortResult);
           });
-          $('#localTableBody').append('<tr><td>' + branchResult + '</td></tr>');
-          $('#localTableBody > tr > td:contains("' + branchResult + '")').append($button);
+          $('#localTableBody').append($branchResult);
         }
       });
     }
