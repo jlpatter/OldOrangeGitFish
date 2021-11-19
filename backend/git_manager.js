@@ -212,12 +212,16 @@ module.exports = class GitManager {
           const shortLine = [branchCommits[i]];
           let child = branchCommits[i];
           let isFinished = false;
+          let mainLineCommit = null;
           while (!isFinished) {
             await child.getParents(10).then(function(parents) {
               if (parents.length > 2) {
                 throw new RangeError('I honestly didn\'t know a commit could have more than 2 parents...');
-              } else if (parents.length === 0 || self.containsCommit(parents[0], mainLine)) {
+              } else if (parents.length === 0) {
                 isFinished = true;
+              } else if (self.containsCommit(parents[0], mainLine)) {
+                isFinished = true;
+                mainLineCommit = parents[0];
               } else {
                 shortLine.push(parents[0]);
                 child = parents[0];
@@ -225,7 +229,11 @@ module.exports = class GitManager {
               // TODO: Implement merge commits by using parents[1]
             });
           }
-          mainLine = shortLine.concat(mainLine);
+          if (mainLineCommit !== null) {
+            mainLine.splice(self.lineIndexOf(mainLineCommit, mainLine), 0, ...shortLine);
+          } else {
+            mainLine = shortLine.concat(mainLine);
+          }
         }
       }
     }
@@ -240,6 +248,21 @@ module.exports = class GitManager {
    */
   containsCommit(commit, line) {
     return line.filter((e) => e.id().toString() === commit.id().toString()).length > 0;
+  }
+
+  /**
+   * Gets the index of the commit from the commit line.
+   * @param {Commit} commit
+   * @param {Array<Commit>} line
+   * @return {number}
+   */
+  lineIndexOf(commit, line) {
+    for (let i = 0; i < line.length; i++) {
+      if (line[i].id().toString() === commit.id().toString()) {
+        return i;
+      }
+    }
+    return -1;
   }
 
   /**
