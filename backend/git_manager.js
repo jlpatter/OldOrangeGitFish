@@ -166,9 +166,20 @@ module.exports = class GitManager {
       return gitReferences[key];
     });
     for (const ref of values) {
+      let remoteMasterCommit = null;
+      // TODO: Un-hardcode the use of origin here (and master and main)
+      if (ref.toString().indexOf('origin/master') >= 0 || ref.toString().indexOf('origin/main') >= 0) {
+        await self.repo.getBranchCommit(ref).then(function(commit) {
+          remoteMasterCommit = commit;
+        });
+      }
       if (!ref.toString().startsWith('refs/tags')) {
         const commitId = await self.repo.getBranchCommit(ref).then(function(commit) {
-          branchCommits.push(commit);
+          if (remoteMasterCommit !== null && remoteMasterCommit.id().toString() === commit.id().toString()) {
+            branchCommits.unshift(commit);
+          } else {
+            branchCommits.push(commit);
+          }
           return commit.id().toString();
         });
         if (ref.isHead()) {
