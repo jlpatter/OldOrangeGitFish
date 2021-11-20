@@ -58,7 +58,9 @@ function createWindow() {
 
   ipcMain.on('git-stage-all-message', (event, arg) => {
     gitManager.gitStageAll().then(function() {
-      win.webContents.send('refresh-message', []);
+      gitManager.gitDiff().then(function(results) {
+        win.webContents.send('git-diff-message', results);
+      });
     });
   });
 
