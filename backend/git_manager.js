@@ -145,8 +145,11 @@ module.exports = class GitManager {
   async gitCommit(message) {
     const self = this;
     const author = Git.Signature.now('Joshua Patterson', 'jleegippies@gmail.com');
-    const files = await self.getStagedChanges();
-    await self.repo.createCommitOnHead(files, author, author, message);
+    const index = await self.repo.refreshIndex();
+    const changes = await index.writeTree();
+    const head = await Git.Reference.nameToId(self.repo, 'HEAD');
+    const parent = await self.repo.getCommit(head);
+    await self.repo.createCommit('HEAD', author, author, message, changes, [parent]);
   }
 
   /**
