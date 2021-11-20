@@ -227,6 +227,10 @@ module.exports = class GitManager {
       });
       progressBarManager.increasePercentage(5);
 
+      // Only show the first 2000 commits.
+      tmpMainLine = tmpMainLine.slice(0, 2000);
+      const lastCommit = tmpMainLine[tmpMainLine.length - 1];
+
       let prevMainLineCommit = null;
       for (let i = 0; i < tmpMainLine.length; i++) {
         mainLine.push(new CommitWrapper(0, tmpMainLine[i], prevMainLineCommit));
@@ -236,7 +240,7 @@ module.exports = class GitManager {
       progressBarManager.increasePercentage(5);
 
       for (let i = 1; i < branchCommits.length; i++) {
-        if (!self.containsCommit(branchCommits[i], mainLine)) {
+        if (!self.containsCommit(branchCommits[i], mainLine) && branchCommits[i].date() > lastCommit.date()) {
           const shortLine = [new CommitWrapper(-1, branchCommits[i], null)];
           let child = branchCommits[i];
           let isFinished = false;
@@ -245,7 +249,7 @@ module.exports = class GitManager {
             await child.getParents(10).then(function(parents) {
               if (parents.length > 2) {
                 throw new RangeError('I honestly didn\'t know a commit could have more than 2 parents...');
-              } else if (parents.length === 0) {
+              } else if (parents.length === 0 || parents[0].date() < lastCommit.date()) {
                 isFinished = true;
               } else if (self.containsCommit(parents[0], mainLine)) {
                 isFinished = true;
@@ -259,7 +263,11 @@ module.exports = class GitManager {
           }
 
           for (let i = 0; i < shortLine.length; i++) {
-            shortLine[i].indent = mainLine[self.lineIndexOf(mainLineCommit, mainLine)].indent + 1;
+            if (mainLineCommit !== null) {
+              shortLine[i].indent = mainLine[self.lineIndexOf(mainLineCommit, mainLine)].indent + 1;
+            } else {
+              shortLine[i].indent = 1;
+            }
             await shortLine[i].commit.getParents(10).then(function(parents) {
               if (parents.length > 2) {
                 throw new RangeError('I honestly didn\'t know a commit could have more than 2 parents...');
@@ -272,7 +280,7 @@ module.exports = class GitManager {
           if (mainLineCommit !== null) {
             mainLine.splice(self.lineIndexOf(mainLineCommit, mainLine), 0, ...shortLine);
           } else {
-            mainLine = shortLine.concat(mainLine);
+            mainLine = mainLine.concat(shortLine);
           }
         }
         progressBarManager.increasePercentage(((1 / branchCommits.length) * 0.84) * 100);
