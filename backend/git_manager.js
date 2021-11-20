@@ -132,9 +132,10 @@ module.exports = class GitManager {
 
   /**
    * Gets the log of commits to send to the main commit table.
+   * @param {ProgressBarManager} progressBarManager The main browser window to send progress bar stuff to.
    * @return {Promise<*[]>}
    */
-  async gitLog() {
+  async gitLog(progressBarManager) {
     const self = this;
     if (self.repo !== null) {
       let commitBranchDict = {};
@@ -147,9 +148,13 @@ module.exports = class GitManager {
           }
         }
         commitBranchDict = await self.buildBranchCommitsAndCommitBranchDict(gitReferences, branchCommits);
+        progressBarManager.increasePercentage(5);
       });
-      const mainLine = await self.getAllCommitLines(branchCommits);
-      return self.getPrintableResults(mainLine, commitBranchDict);
+      const mainLine = await self.getAllCommitLines(progressBarManager, branchCommits);
+      progressBarManager.setPercentage(99);
+      const printableResults = self.getPrintableResults(mainLine, commitBranchDict);
+      progressBarManager.increasePercentage(1);
+      return printableResults;
     }
   }
 
@@ -162,10 +167,10 @@ module.exports = class GitManager {
   async buildBranchCommitsAndCommitBranchDict(gitReferences, branchCommits) {
     const self = this;
     const commitBranchDict = {};
-    const values = Object.keys(gitReferences).map(function(key) {
+    const gitRefValues = Object.keys(gitReferences).map(function(key) {
       return gitReferences[key];
     });
-    for (const ref of values) {
+    for (const ref of gitRefValues) {
       let remoteMasterCommit = null;
       // TODO: Un-hardcode the use of origin here (and master and main)
       if (ref.toString().indexOf('origin/master') >= 0 || ref.toString().indexOf('origin/main') >= 0) {
@@ -202,10 +207,11 @@ module.exports = class GitManager {
 
   /**
    * Uses the branchCommits to get the commit 'lines', which are lines of commits.
+   * @param {ProgressBarManager} progressBarManager
    * @param {Array<Commit>} branchCommits
    * @return {Promise<*[]>}
    */
-  async getAllCommitLines(branchCommits) {
+  async getAllCommitLines(progressBarManager, branchCommits) {
     const self = this;
     let mainLine = [];
     if (branchCommits.length > 0) {
@@ -219,12 +225,15 @@ module.exports = class GitManager {
 
         history.start();
       });
+      progressBarManager.increasePercentage(5);
 
       let prevMainLineCommit = null;
       for (let i = 0; i < tmpMainLine.length; i++) {
         mainLine.push(new CommitWrapper(0, tmpMainLine[i], prevMainLineCommit));
         prevMainLineCommit = tmpMainLine[i];
       }
+
+      progressBarManager.increasePercentage(5);
 
       for (let i = 1; i < branchCommits.length; i++) {
         if (!self.containsCommit(branchCommits[i], mainLine)) {
@@ -266,6 +275,7 @@ module.exports = class GitManager {
             mainLine = shortLine.concat(mainLine);
           }
         }
+        progressBarManager.increasePercentage(((1 / branchCommits.length) * 0.84) * 100);
       }
     }
     return mainLine;

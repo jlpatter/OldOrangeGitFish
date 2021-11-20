@@ -175,6 +175,21 @@ class Main {
       $('#stagedTableBody').append('<tr><td>' + stagedFile + '</td></tr>');
     });
   }
+
+  /**
+   * Sets the progress bar to the specified amount.
+   * @param {int} percentageInt
+   */
+  setProgressBar(percentageInt) {
+    const $progressBar = $('.progress-bar');
+    const $progress = $('.progress');
+    $progress.fadeIn('fast');
+    $progressBar.css('width', percentageInt + '%');
+    $progressBar.attr('aria-valuenow', percentageInt);
+    if (percentageInt === 100) {
+      $progress.fadeOut('fast');
+    }
+  }
 }
 
 const main = new Main();
@@ -200,6 +215,10 @@ ipcRenderer.on('git-fetch-creds', (event, arg) => {
   main.openLoginWindow().then(function(results) {
     ipcRenderer.send('git-fetch-creds', [main.username, main.password]);
   });
+});
+
+ipcRenderer.on('progress-bar-value', (event, arg) => {
+  main.setProgressBar(arg);
 });
 
 main.run();

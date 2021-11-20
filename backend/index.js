@@ -2,6 +2,7 @@ const {app, BrowserWindow, ipcMain} = require('electron');
 const remoteMain = require('@electron/remote/main');
 const path = require('path');
 const GitManager = require('./git_manager');
+const ProgressBarManager = require('./progress_bar_manager');
 
 const gitManager = new GitManager();
 
@@ -43,7 +44,8 @@ function createWindow() {
   });
 
   ipcMain.on('git-log-message', (event, arg) => {
-    gitManager.gitLog().then(function(results) {
+    const progressBarManager = new ProgressBarManager(win, 0);
+    gitManager.gitLog(progressBarManager).then(function(results) {
       win.webContents.send('git-log-message', results);
     });
   });
