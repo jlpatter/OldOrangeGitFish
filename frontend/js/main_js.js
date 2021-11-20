@@ -190,7 +190,24 @@ class Main {
 
     // Staged changes
     results[1].forEach(function(stagedFile) {
-      $('#stagedTableBody').append('<tr><td>' + stagedFile + '</td></tr>');
+      const $button = $('<button type="button" class="btn btn-danger btn-sm right">-</button>');
+      $button.click(function() {
+        if (self.filePath !== '') {
+          ipcRenderer.send('git-unstage-message', stagedFile);
+        }
+      });
+      const $row = $('<tr><td>' + ' ' + stagedFile[1] + '</td></tr>');
+      if (stagedFile[0] === 2) {
+        $row.find('td').prepend('- ');
+      } else if (stagedFile[0] === 3) {
+        $row.find('td').prepend('# ');
+      } else if (stagedFile[0] === 1) {
+        $row.find('td').prepend('+ ');
+      } else {
+        $row.find('td').prepend('? ');
+      }
+      $row.find('td').append($button);
+      $('#stagedTableBody').append($row);
     });
   }
 

@@ -64,6 +64,14 @@ function createWindow() {
     });
   });
 
+  ipcMain.on('git-unstage-message', (event, arg) => {
+    gitManager.gitUnstage(arg).then(function() {
+      gitManager.gitDiff().then(function(results) {
+        win.webContents.send('git-diff-message', results);
+      });
+    });
+  });
+
   ipcMain.on('git-stage-all-message', (event, arg) => {
     gitManager.gitStageAll().then(function() {
       gitManager.gitDiff().then(function(results) {

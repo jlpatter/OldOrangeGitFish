@@ -89,7 +89,7 @@ module.exports = class GitManager {
     const patches = await diff.patches();
     const stagedFiles = [];
     patches.forEach(function(patch) {
-      stagedFiles.push(patch.newFile().path());
+      stagedFiles.push([patch.status(), patch.newFile().path()]);
     });
     return stagedFiles;
   }
@@ -111,26 +111,29 @@ module.exports = class GitManager {
   }
 
   /**
+   * Stages the change of a single file
+   * @param {Array} statusAndFilePath
+   * @return {Promise<void>}
+   */
+  async gitUnstage(statusAndFilePath) {
+    const self = this;
+    const index = await self.repo.refreshIndex();
+    if (statusAndFilePath[0] === 2 || statusAndFilePath[0] === 3) {
+      const headCommit = await self.repo.getHeadCommit();
+      await Git.Reset.default(self.repo, headCommit, [statusAndFilePath[1]]);
+    } else {
+      await index.removeByPath(statusAndFilePath[1]);
+    }
+    await index.write();
+  }
+
+  /**
    * Stages all changes that are unstaged
    * @return {Promise<void>}
    */
   async gitStageAll() {
-    const self = this;
-    const diff = await Git.Diff.indexToWorkdir(self.repo, null, {
-      flags: Git.Diff.OPTION.SHOW_UNTRACKED_CONTENT | Git.Diff.OPTION.RECURSE_UNTRACKED_DIRS,
-    });
-    const index = await self.repo.refreshIndex();
-
-    await diff.patches().then(async function(patches) {
-      for (const patch of patches) {
-        if (patch.status() !== 2) {
-          await index.addByPath(patch.newFile().path());
-        } else {
-          await index.removeByPath(patch.newFile().path());
-        }
-      }
-    });
-
+    const index = await this.repo.refreshIndex();
+    await index.addAll();
     await index.write();
   }
 
