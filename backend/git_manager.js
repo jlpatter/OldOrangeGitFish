@@ -56,7 +56,7 @@ module.exports = class GitManager {
       });
       await diff.patches().then(function(patches) {
         patches.forEach(function(patch) {
-          unstagedFiles.push(patch.newFile().path());
+          unstagedFiles.push([patch.status(), patch.newFile().path()]);
           // TODO: Use this to implement diffs someday.
           // patch.hunks().then(function(hunks) {
           //     hunks.forEach(function(hunk) {
@@ -92,6 +92,22 @@ module.exports = class GitManager {
       stagedFiles.push(patch.newFile().path());
     });
     return stagedFiles;
+  }
+
+  /**
+   * Stages the change of a single file
+   * @param {Array} statusAndFilePath
+   * @return {Promise<void>}
+   */
+  async gitStage(statusAndFilePath) {
+    const self = this;
+    const index = await self.repo.refreshIndex();
+    if (statusAndFilePath[0] !== 2) {
+      await index.addByPath(statusAndFilePath[1]);
+    } else {
+      await index.removeByPath(statusAndFilePath[1]);
+    }
+    await index.write();
   }
 
   /**

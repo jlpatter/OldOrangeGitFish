@@ -56,6 +56,14 @@ function createWindow() {
     });
   });
 
+  ipcMain.on('git-stage-message', (event, arg) => {
+    gitManager.gitStage(arg).then(function() {
+      gitManager.gitDiff().then(function(results) {
+        win.webContents.send('git-diff-message', results);
+      });
+    });
+  });
+
   ipcMain.on('git-stage-all-message', (event, arg) => {
     gitManager.gitStageAll().then(function() {
       gitManager.gitDiff().then(function(results) {

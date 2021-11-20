@@ -160,6 +160,7 @@ class Main {
    * @param {Array} results
    */
   refreshStagingTables(results) {
+    const self = this;
     $('#unstagedTableBody tr').remove();
     $('#stagedTableBody tr').remove();
     $('#unstagedTableBody').append('<tr><th><h4>Unstaged Changes</h4></th></tr>');
@@ -167,7 +168,24 @@ class Main {
 
     // Unstaged changes
     results[0].forEach(function(unstagedFile) {
-      $('#unstagedTableBody').append('<tr><td>' + unstagedFile + '</td></tr>');
+      const $button = $('<button type="button" class="btn btn-success btn-sm right">+</button>');
+      $button.click(function() {
+        if (self.filePath !== '') {
+          ipcRenderer.send('git-stage-message', unstagedFile);
+        }
+      });
+      const $row = $('<tr><td>' + ' ' + unstagedFile[1] + '</td></tr>');
+      if (unstagedFile[0] === 2) {
+        $row.find('td').prepend('- ');
+      } else if (unstagedFile[0] === 3) {
+        $row.find('td').prepend('# ');
+      } else if (unstagedFile[0] === 7) {
+        $row.find('td').prepend('+ ');
+      } else {
+        $row.find('td').prepend('? ');
+      }
+      $row.find('td').append($button);
+      $('#unstagedTableBody').append($row);
     });
 
     // Staged changes
