@@ -27,32 +27,34 @@
     <div id="mainTable" class="container-fluid">
         <div class="row">
             <div class="col-3">
-                <table class="table table-borderless">
-                    <tbody>
-                    <tr>
-                        <td>
-                            <table id="localTable" class="table table-borderless table-responsive table-dark table-hover table-sm">
-                                <tbody id="localTableBody">
-                                <tr>
-                                    <th><h4>Local Branches</h4></th>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <table id="remoteTable" class="table table-borderless table-responsive table-dark table-hover table-sm">
-                                <tbody id="remoteTableBody">
-                                <tr>
-                                    <th><h4>Remote Branches</h4></th>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
+                <div id="branchColumn">
+                    <table class="table table-borderless">
+                        <tbody>
+                        <tr>
+                            <td>
+                                <table id="localTable" class="table table-borderless table-responsive table-dark table-hover table-sm">
+                                    <tbody id="localTableBody">
+                                    <tr>
+                                        <th><h4>Local Branches</h4></th>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <table id="remoteTable" class="table table-borderless table-responsive table-dark table-hover table-sm">
+                                    <tbody id="remoteTableBody">
+                                    <tr>
+                                        <th><h4>Remote Branches</h4></th>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
             <div class="col-6">
                 <div id="commitColumn">
