@@ -5,15 +5,15 @@ module.exports = class SVGRow {
   /**
    * Construct the svg row
    * @param {string} sha
-   * @param {string} parentSha
+   * @param {Array<string>} parentShas
    * @param {int} indent
    * @param {int} x
    * @param {int} y
    * @param {Array} entry
    */
-  constructor(sha, parentSha, indent, x, y, entry) {
+  constructor(sha, parentShas, indent, x, y, entry) {
     this.sha = sha;
-    this.parentSha = parentSha;
+    this.parentShas = parentShas;
     this.indent = indent;
     this.x = x;
     this.y = y;
@@ -22,36 +22,42 @@ module.exports = class SVGRow {
   }
 
   /**
-   * Gets the parent SVGRow
+   * Gets the SVGRow parents
    * @param {Array<SVGRow>} array
-   * @return {SVGRow}
+   * @return {Array<SVGRow>}
    */
-  getParentSVGRow(array) {
+  getParentSVGRows(array) {
     const self = this;
-    if (self.parentSha === '') {
-      return null;
+    if (self.parentShas.length === 0) {
+      return [];
     }
-    for (let i = 0; i < array.length; i++) {
-      if (self.parentSha === array[i].sha) {
-        return array[i];
+    const parentSVGRows = [];
+    for (let i = 0; i < self.parentShas.length; i++) {
+      for (let j = 0; j < array.length; j++) {
+        if (self.parentShas[i] === array[j].sha) {
+          parentSVGRows.push(array[j]);
+          break;
+        }
       }
     }
-    return null;
+    return parentSVGRows;
   }
 
   /**
    * Draw each of the components of the svg row.
    * @param {jQuery} $commitTableSVG
-   * @param {SVGRow} prev
+   * @param {Array<SVGRow>} prevs
    */
-  draw($commitTableSVG, prev) {
+  draw($commitTableSVG, prevs) {
     const self = this;
     const color = self.getColor();
     const svgCircle = self.makeSVG('circle', {'cx': self.x, 'cy': self.y, 'r': 10, 'stroke': color, 'stroke-width': 1, 'fill': color});
     $commitTableSVG.append(svgCircle);
-    if (prev !== null) {
-      const svgLine = self.makeSVG('line', {x1: prev.x, y1: prev.y, x2: self.x, y2: self.y, style: 'stroke:' + color + ';stroke-width:4'});
-      $commitTableSVG.append(svgLine);
+    if (prevs.length > 0) {
+      for (let i = 0; i < prevs.length; i++) {
+        const svgLine = self.makeSVG('line', {x1: prevs[i].x, y1: prevs[i].y, x2: self.x, y2: self.y, style: 'stroke:' + color + ';stroke-width:4'});
+        $commitTableSVG.append(svgLine);
+      }
     }
     let currentX = self.x + 15;
     self.entry[0].forEach(function(branch) {

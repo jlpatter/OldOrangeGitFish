@@ -39,7 +39,7 @@ module.exports = class SVGManager {
 
     let maxWidth = 0;
     for (const svgRow of svgRows) {
-      svgRow.draw(self.$commitTableSVG, svgRow.getParentSVGRow(svgRows));
+      svgRow.draw(self.$commitTableSVG, svgRow.getParentSVGRows(svgRows));
       maxWidth = Math.max(maxWidth, svgRow.width);
     }
 
