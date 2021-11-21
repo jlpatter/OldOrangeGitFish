@@ -20,9 +20,9 @@ module.exports = class CommitWrapper {
    */
   getParseableFormat() {
     if (this.parentCommit !== null) {
-      return [this.indent, this.commit.message(), this.commit.id().toString(), this.parentCommit.id().toString()];
+      return [this.indent, this.commit.summary(), this.commit.id().toString(), this.parentCommit.id().toString()];
     } else {
-      return [this.indent, this.commit.message(), this.commit.id().toString(), ''];
+      return [this.indent, this.commit.summary(), this.commit.id().toString(), ''];
     }
   }
 };
