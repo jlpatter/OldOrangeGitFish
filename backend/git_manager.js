@@ -539,6 +539,19 @@ module.exports = class GitManager {
   }
 
   /**
+   * Creates a new branch
+   * @param {string} branchName
+   */
+  async gitBranch(branchName) {
+    const self = this;
+    await self.repo.getHeadCommit().then(async function(headCommit) {
+      await Git.Branch.create(self.repo, branchName, headCommit, 0).then(async function(ref) {
+        await self.gitCheckout(ref);
+      });
+    });
+  }
+
+  /**
    * Gets the credentials for remote operations.
    * @param {BrowserWindow} win
    * @return {Promise<*>}

@@ -45,6 +45,12 @@ class Main {
         }
       });
 
+      $('#branchBtn').click(async function() {
+        if (self.filePath !== '') {
+          await self.openCreateBranchWindow();
+        }
+      });
+
       $('#stageAllBtn').click(function() {
         if (self.filePath !== '') {
           ipcRenderer.send('git-stage-all-message', []);
@@ -102,6 +108,31 @@ class Main {
     await new Promise(function(resolve, reject) {
       win.loadFile('./frontend/views/username_password_prompt.html');
 
+      win.on('close', function() {
+        resolve();
+      });
+    });
+  }
+
+  /**
+   * Opens the create branch window asking for a branch name
+   * then waits until it's closed
+   * @return {Promise<void>}
+   */
+  async openCreateBranchWindow() {
+    const win = new BrowserWindow({
+      width: 400,
+      height: 300,
+      webPreferences: {
+        nodeIntegration: true,
+        contextIsolation: false,
+      },
+    });
+
+    remoteMain.enable(win.webContents);
+
+    await new Promise(function(resolve, reject) {
+      win.loadFile('./frontend/views/branch_name.html');
       win.on('close', function() {
         resolve();
       });

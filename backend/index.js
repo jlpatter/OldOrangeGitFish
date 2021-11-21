@@ -115,6 +115,12 @@ function createWindow() {
       win.webContents.send('refresh-message', []);
     });
   });
+
+  ipcMain.on('git-branch-message', (event, arg) => {
+    gitManager.gitBranch(arg).then(function() {
+      win.webContents.send('refresh-message', []);
+    });
+  });
 }
 
 app.whenReady().then(() => {
