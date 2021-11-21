@@ -360,7 +360,7 @@ module.exports = class GitManager {
     const self = this;
     const indent = parentLine[self.lineIndexOf(mergeCommit, parentLine)].indent + 1;
     const mergeCommitParents = [];
-    let mergeLine = [];
+    const mergeLine = [];
     let isFinished = false;
     let child = mergeCommitParent;
 
@@ -391,8 +391,7 @@ module.exports = class GitManager {
     }
     for (let i = 0; i < mergeCommitParents; i++) {
       const smallMergeLine = await self.getMergeCommitLine(mergeCommitParents[i][0], mergeCommitParents[i][1], mergeCommitParents[i][2], mergeCommitParents[i][3]);
-      mergeLine.splice(self.lineIndexOf(mergeCommitParents[i][0], mergeLine), 0, ...smallMergeLine);
-      mergeLine = mergeLine.concat(smallMergeLine);
+      mergeLine.splice(self.lineIndexOf(mergeCommitParents[i][0], mergeLine) + 1, 0, ...smallMergeLine);
     }
     return mergeLine;
   }
