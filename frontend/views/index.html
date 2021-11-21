@@ -6,6 +6,7 @@
 <!--    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'">-->
 <!--    <meta http-equiv="X-Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'">-->
     <link rel="stylesheet" href="../../lib/bootstrap/5.1.3/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../../node_modules/bootstrap-icons/font/bootstrap-icons.css" />
     <link rel="stylesheet" type="text/css" href="../css/main_style.css" />
 
     <script>let $ = require('jquery');</script>
@@ -18,9 +19,9 @@
 <body class="bg-dark text-white">
 
     <div class="container">
-        <button id="fetchBtn" type="button" class="btn btn-secondary btn-sm">Fetch</button>
-        <button id="pullBtn" type="button" class="btn btn-primary btn-sm">Pull</button>
-        <button id="pushBtn" type="button" class="btn btn-primary btn-sm">Push</button>
+        <button id="fetchBtn" type="button" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-down"></i>Fetch</button>
+        <button id="pullBtn" type="button" class="btn btn-primary btn-sm"><i class="bi bi-arrow-down"></i>Pull</button>
+        <button id="pushBtn" type="button" class="btn btn-primary btn-sm"><i class="bi bi-arrow-up"></i>Push</button>
         <button id="stageAllBtn" type="button" class="btn btn-success right btn-sm">Stage All</button>
     </div>
 
@@ -92,7 +93,7 @@
                             <label class="text-white">
                                 Message: <input id="messageTxt" type="text" />
                             </label>
-                            <button id="commitBtn" type="button" class="btn btn-primary btn-sm">Commit</button>
+                            <button id="commitBtn" type="button" class="btn btn-primary btn-sm"><i class="bi bi-check-circle"></i> Commit</button>
                         </td>
                     </tr>
                     </tbody>
@@ -102,10 +103,10 @@
     </div>
 
     <div class="container">
-        <button id="initBtn" type="button" class="btn btn-primary btn-sm">Init</button>
-        <button id="openBtn" type="button" class="btn btn-primary btn-sm">Open</button>
-        <button id="refreshBtn" type="button" class="btn btn-secondary btn-sm">Refresh</button>
-        <button id="exitBtn" type="button" class="btn btn-danger btn-sm right">Exit</button>
+        <button id="initBtn" type="button" class="btn btn-primary btn-sm"><i class="bi bi-asterisk"></i> Init</button>
+        <button id="openBtn" type="button" class="btn btn-primary btn-sm"><i class="bi bi-folder"></i> Open</button>
+        <button id="refreshBtn" type="button" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-repeat"></i> Refresh</button>
+        <button id="exitBtn" type="button" class="btn btn-danger btn-sm right"><i class="bi bi-door-open"></i> Exit</button>
     </div>
 
     <div class="container">

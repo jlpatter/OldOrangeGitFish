@@ -168,7 +168,7 @@ class Main {
 
     // Unstaged changes
     results[0].forEach(function(unstagedFile) {
-      const $button = $('<button type="button" class="btn btn-success btn-sm right">+</button>');
+      const $button = $('<button type="button" class="btn btn-success btn-sm right"><i class="bi bi-plus-lg"></i></button>');
       $button.click(function() {
         if (self.filePath !== '') {
           ipcRenderer.send('git-stage-message', unstagedFile);
@@ -176,13 +176,13 @@ class Main {
       });
       const $row = $('<tr><td>' + ' ' + unstagedFile[1] + '</td></tr>');
       if (unstagedFile[0] === 2) {
-        $row.find('td').prepend('- ');
+        $row.find('td').prepend('<i class="bi bi-dash-lg"></i> ');
       } else if (unstagedFile[0] === 3) {
-        $row.find('td').prepend('# ');
+        $row.find('td').prepend('<i class="bi bi-pen"></i> ');
       } else if (unstagedFile[0] === 7) {
-        $row.find('td').prepend('+ ');
+        $row.find('td').prepend('<i class="bi bi-plus-lg"></i> ');
       } else {
-        $row.find('td').prepend('? ');
+        $row.find('td').prepend('<i class="bi bi-question-circle"></i> ');
       }
       $row.find('td').append($button);
       $('#unstagedTableBody').append($row);
@@ -190,7 +190,7 @@ class Main {
 
     // Staged changes
     results[1].forEach(function(stagedFile) {
-      const $button = $('<button type="button" class="btn btn-danger btn-sm right">-</button>');
+      const $button = $('<button type="button" class="btn btn-danger btn-sm right"><i class="bi bi-dash-lg"></i></button>');
       $button.click(function() {
         if (self.filePath !== '') {
           ipcRenderer.send('git-unstage-message', stagedFile);
@@ -198,13 +198,13 @@ class Main {
       });
       const $row = $('<tr><td>' + ' ' + stagedFile[1] + '</td></tr>');
       if (stagedFile[0] === 2) {
-        $row.find('td').prepend('- ');
+        $row.find('td').prepend('<i class="bi bi-dash-lg"></i> ');
       } else if (stagedFile[0] === 3) {
-        $row.find('td').prepend('# ');
+        $row.find('td').prepend('<i class="bi bi-pen"></i> ');
       } else if (stagedFile[0] === 1) {
-        $row.find('td').prepend('+ ');
+        $row.find('td').prepend('<i class="bi bi-plus-lg"></i> ');
       } else {
-        $row.find('td').prepend('? ');
+        $row.find('td').prepend('<i class="bi bi-question-circle"></i> ');
       }
       $row.find('td').append($button);
       $('#stagedTableBody').append($row);
