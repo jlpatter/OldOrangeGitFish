@@ -17,6 +17,7 @@ module.exports = class SVGRow {
     this.indent = indent;
     this.x = x;
     this.y = y;
+    this.width = 0;
     this.entry = entry;
   }
 
@@ -64,6 +65,7 @@ module.exports = class SVGRow {
     const entryElem = self.makeSVG('text', {x: currentX, y: self.y + 6, fill: 'white'});
     entryElem.textContent = self.entry[1][1];
     $commitTableSVG.append(entryElem);
+    self.width = currentX + entryElem.getBBox().width;
   }
 
   /**
