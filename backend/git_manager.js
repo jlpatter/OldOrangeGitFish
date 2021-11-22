@@ -12,6 +12,8 @@ module.exports = class GitManager {
    */
   constructor() {
     this.repo = null;
+    this.username = '';
+    this.password = '';
     this.emptyTree = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
   }
 
@@ -557,18 +559,19 @@ module.exports = class GitManager {
    * @return {Promise<*>}
    */
   async getCredential(win) {
-    let username = '';
-    let password = '';
+    const self = this;
 
-    await new Promise(function(resolve, reject) {
-      win.webContents.send('git-fetch-creds', []);
-      ipcMain.on('login-message', (event, arg) => {
-        username = arg[0];
-        password = arg[1];
-        resolve();
+    if (self.username === '' || self.password === '') {
+      await new Promise(function(resolve, reject) {
+        win.webContents.send('git-fetch-creds', []);
+        ipcMain.on('login-message', (event, arg) => {
+          self.username = arg[0];
+          self.password = arg[1];
+          resolve();
+        });
       });
-    });
+    }
 
-    return Git.Credential.userpassPlaintextNew(username, password);
+    return Git.Credential.userpassPlaintextNew(self.username, self.password);
   }
 };
