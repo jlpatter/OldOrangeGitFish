@@ -14,9 +14,8 @@ class Main {
    * Constructs a new main object.
    */
   constructor() {
+    // TODO: Move this filePath variable to the gitManager
     this.filePath = '';
-    this.username = '';
-    this.password = '';
   }
 
   /**
@@ -260,11 +259,6 @@ class Main {
 
 const main = new Main();
 
-ipcRenderer.on('login-message', (event, arg) => {
-  main.username = arg[0];
-  main.password = arg[1];
-});
-
 ipcRenderer.on('refresh-message', (event, arg) => {
   main.refreshAll();
 });
@@ -277,10 +271,8 @@ ipcRenderer.on('git-diff-message', (event, arg) => {
   main.refreshStagingTables(arg);
 });
 
-ipcRenderer.on('git-fetch-creds', (event, arg) => {
-  main.openLoginWindow().then(function(results) {
-    ipcRenderer.send('git-fetch-creds', [main.username, main.password]);
-  });
+ipcRenderer.on('git-fetch-creds', async (event, arg) => {
+  await main.openLoginWindow();
 });
 
 ipcRenderer.on('progress-bar-value', (event, arg) => {

@@ -562,7 +562,7 @@ module.exports = class GitManager {
 
     await new Promise(function(resolve, reject) {
       win.webContents.send('git-fetch-creds', []);
-      ipcMain.on('git-fetch-creds', (event, arg) => {
+      ipcMain.on('login-message', (event, arg) => {
         username = arg[0];
         password = arg[1];
         resolve();

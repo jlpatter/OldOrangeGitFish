@@ -27,10 +27,6 @@ function createWindow() {
 
   win.loadFile('./frontend/views/index.html');
 
-  ipcMain.on('login-message', (event, arg) => {
-    win.webContents.send('login-message', arg);
-  });
-
   ipcMain.on('git-init-message', (event, arg) => {
     gitManager.gitInit(arg).then(function() {
       win.webContents.send('refresh-message', []);
