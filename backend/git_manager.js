@@ -267,6 +267,8 @@ module.exports = class GitManager {
     const self = this;
     let mainLine = [];
     if (branchCommits.length > 0) {
+      const mergeCommits = [];
+
       // Build the mainline
       let counter = 0;
       let isTmpMainLineFinished = false;
@@ -279,6 +281,9 @@ module.exports = class GitManager {
             } else if (parents.length === 0) {
               isTmpMainLineFinished = true;
             } else {
+              if (parents.length === 2) {
+                mergeCommits.push([tmpMainLineChild, parents[1]]);
+              }
               mainLine.push(new CommitWrapper(0, tmpMainLineChild, parents));
               tmpMainLineChild = parents[0];
             }
@@ -295,39 +300,19 @@ module.exports = class GitManager {
       // Only show the first 2000 commits.
       const lastCommit = mainLine[mainLine.length - 1].commit;
 
-      // Get mergeLines on the mainLine
-      let isMainLineFinished = false;
-      let mainLineChild = mainLine[0].commit;
-      while (!isMainLineFinished) {
-        await mainLineChild.getParents(10).then(async function(parents) {
-          if (parents.length === 2) {
-            const mergeCommitLine = await self.getMergeCommitLine(mainLineChild, parents[1], mainLine, lastCommit);
-            mainLine.splice(self.lineIndexOf(mainLineChild, mainLine) + 1, 0, ...mergeCommitLine);
-          }
-          if (parents.length > 2) {
-            throw new RangeError('I honestly didn\'t know a commit could have more than 2 parents...');
-          } else if (parents.length === 0 || parents[0].date() < lastCommit.date()) {
-            isMainLineFinished = true;
-          } else {
-            mainLineChild = parents[0];
-          }
-        });
-      }
-
       progressBarManager.increasePercentage(5);
 
       for (let i = 1; i < branchCommits.length; i++) {
         if (!self.containsCommit(branchCommits[i], mainLine) && branchCommits[i].date() > lastCommit.date()) {
           // Build shortlines from branchCommits
           const shortLine = [new CommitWrapper(-1, branchCommits[i], [])];
-          const mergeCommitParents = [];
           let child = branchCommits[i];
           let isFinished = false;
           let mainLineCommit = null;
           while (!isFinished) {
             await child.getParents(10).then(function(parents) {
               if (parents.length === 2) {
-                mergeCommitParents.push([child, parents[1]]);
+                mergeCommits.push([child, parents[1]]);
               }
               if (parents.length > 2) {
                 throw new RangeError('I honestly didn\'t know a commit could have more than 2 parents...');
@@ -359,12 +344,6 @@ module.exports = class GitManager {
             });
           }
 
-          // Merge the merge commit lines into the branch line
-          for (let i = 0; i < mergeCommitParents.length; i++) {
-            const mergeLine = await self.getMergeCommitLine(mergeCommitParents[i][0], mergeCommitParents[i][1], shortLine, lastCommit);
-            shortLine.splice(self.lineIndexOf(mergeCommitParents[i][0], shortLine) + 1, 0, ...mergeLine);
-          }
-
           if (mainLineCommit !== null) {
             // Inserts shortLine into mainLine at self.lineIndexOf(mainLineCommit, mainLine)
             mainLine.splice(self.lineIndexOf(mainLineCommit, mainLine), 0, ...shortLine);
@@ -373,6 +352,11 @@ module.exports = class GitManager {
           }
         }
         progressBarManager.increasePercentage(((1 / branchCommits.length) * 0.84) * 100);
+      }
+
+      // Add mergeLines to the mainLine
+      for (let i = 0; i < mergeCommits.length; i++) {
+        await self.getMergeCommitLine(mergeCommits[i][0], mergeCommits[i][1], mainLine, lastCommit);
       }
     }
     return mainLine;
@@ -398,7 +382,7 @@ module.exports = class GitManager {
     while (!isFinished) {
       await child.getParents(10).then(async function(parents) {
         if (parents.length === 2) {
-          mergeCommitParents.push([child, parents[1], mergeLine, lastCommit]);
+          mergeCommitParents.push([child, parents[1]]);
         }
         if (parents.length > 2) {
           throw new RangeError('I honestly didn\'t know a commit could have more than 2 parents...');
@@ -419,9 +403,11 @@ module.exports = class GitManager {
         }
       });
     }
+
+    parentLine.splice(self.lineIndexOf(mergeCommit, parentLine) + 1, 0, ...mergeLine);
+
     for (let i = 0; i < mergeCommitParents; i++) {
-      const smallMergeLine = await self.getMergeCommitLine(mergeCommitParents[i][0], mergeCommitParents[i][1], mergeCommitParents[i][2], mergeCommitParents[i][3]);
-      mergeLine.splice(self.lineIndexOf(mergeCommitParents[i][0], mergeLine) + 1, 0, ...smallMergeLine);
+      await self.getMergeCommitLine(mergeCommitParents[i][0], mergeCommitParents[i][1], parentLine, lastCommit);
     }
     return mergeLine;
   }
