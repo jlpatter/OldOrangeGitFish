@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="../../lib/bootstrap/5.1.3/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../../node_modules/bootstrap-icons/font/bootstrap-icons.css" />
+
+    <script>let $ = require('jquery');</script>
+    <script>require('popper.js');</script>
+    <script>require('bootstrap');</script>
+    <script type="text/javascript" src="../js/clone_prompt.js"></script>
+    <title>Clone</title>
+</head>
+<body class="bg-dark text-white">
+<div class="container">
+    <label>
+        URL: <input id="urlTxt" type="text" />
+    </label>
+    <label>
+        Path: <input id="pathTxt" type="text" /> <button id="directoryBtn" type="button" class="btn btn-primary btn-sm"><i class="bi bi-folder"></i></button>
+    </label>
+    <button id="cloneBtn" type="button" class="btn btn-success btn-sm"><i class="bi bi-check-circle"></i> Clone</button>
+    <button id="cancelBtn" type="button" class="btn btn-secondary btn-sm"><i class="bi bi-x-circle"></i> Cancel</button>
+</div>
+</body>
+</html>

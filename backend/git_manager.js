@@ -12,6 +12,7 @@ module.exports = class GitManager {
    */
   constructor() {
     this.repo = null;
+    this.filePath = '';
     this.username = '';
     this.password = '';
     this.emptyTree = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
@@ -24,6 +25,7 @@ module.exports = class GitManager {
   async gitInit(filePath) {
     const self = this;
     if (filePath !== undefined) {
+      self.filePath = filePath;
       await Git.Repository.init(filePath, 0).then(function(repo) {
         self.repo = repo;
       });
@@ -38,10 +40,36 @@ module.exports = class GitManager {
   async gitOpen(filePath) {
     const self = this;
     if (filePath !== undefined) {
+      self.filePath = filePath;
       await Git.Repository.open(filePath).then(function(repo) {
         self.repo = repo;
       });
     }
+  }
+
+  /**
+   * Clones a repository in the given filepath.
+   * @param {Electron.CrossProcessExports.BrowserWindow} win
+   * @param {Array<string>} urlAndPath
+   * @return {Promise<void>}
+   */
+  async gitClone(win, urlAndPath) {
+    const self = this;
+    const cloneOptions = {};
+    cloneOptions.fetchOpts = {
+      callbacks: {
+        certificateCheck: function() {
+          return 0;
+        },
+        credentials: async function() {
+          return await self.getCredential(win);
+        },
+      },
+    };
+    self.filePath = urlAndPath[1];
+    await Git.Clone.clone(urlAndPath[0], urlAndPath[1], cloneOptions).then(function(repo) {
+      self.repo = repo;
+    });
   }
 
   /**
@@ -485,7 +513,7 @@ module.exports = class GitManager {
 
   /**
    * Fetches from the remote.
-   * @param {BrowserWindow} win The main window
+   * @param {Electron.CrossProcessExports.BrowserWindow} win The main window
    * @return {Promise<void>}
    */
   async gitFetch(win) {
@@ -502,7 +530,7 @@ module.exports = class GitManager {
 
   /**
    * Pulls down from the remote.
-   * @param {BrowserWindow} win
+   * @param {Electron.CrossProcessExports.BrowserWindow} win
    * @return {Promise<void>}
    */
   async gitPull(win) {
@@ -522,7 +550,7 @@ module.exports = class GitManager {
 
   /**
    * Pushes the local branch to the remote.
-   * @param {BrowserWindow} win
+   * @param {Electron.CrossProcessExports.BrowserWindow} win
    * @return {Promise<void>}
    */
   async gitPush(win) {
@@ -555,7 +583,7 @@ module.exports = class GitManager {
 
   /**
    * Gets the credentials for remote operations.
-   * @param {BrowserWindow} win
+   * @param {Electron.CrossProcessExports.BrowserWindow} win
    * @return {Promise<*>}
    */
   async getCredential(win) {

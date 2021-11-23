@@ -4,7 +4,7 @@
 module.exports = class ProgressBarManager {
   /**
    * Constructs a new progress bar manager
-   * @param {BrowserWindow} win
+   * @param {Electron.CrossProcessExports.BrowserWindow} win
    * @param {number} percentage
    */
   constructor(win, percentage) {

@@ -39,6 +39,12 @@ function createWindow() {
     });
   });
 
+  ipcMain.on('git-clone-message', (event, arg) => {
+    gitManager.gitClone(win, arg).then(function() {
+      win.webContents.send('refresh-message', []);
+    });
+  });
+
   ipcMain.on('git-log-message', (event, arg) => {
     const progressBarManager = new ProgressBarManager(win, 0);
     gitManager.gitLog(progressBarManager).then(function(results) {

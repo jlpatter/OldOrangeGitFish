@@ -1,6 +1,6 @@
 const ipcRenderer = require('electron').ipcRenderer;
 const remote = require('@electron/remote');
-const remoteMain = require('@electron/remote/main');
+const remoteMain = remote.require('@electron/remote/main');
 const dialog = remote.dialog;
 const app = remote.app;
 const BrowserWindow = remote.BrowserWindow;
@@ -11,14 +11,6 @@ const SVGManager = require('../js/svg_manager.js');
  */
 class Main {
   /**
-   * Constructs a new main object.
-   */
-  constructor() {
-    // TODO: Move this filePath variable to the gitManager
-    this.filePath = '';
-  }
-
-  /**
    * Runs the primary functions of the application.
    */
   run() {
@@ -27,55 +19,45 @@ class Main {
       self.svgManager = new SVGManager();
 
       $('#fetchBtn').click(function() {
-        if (self.filePath !== '') {
-          ipcRenderer.send('git-fetch-message', []);
-        }
+        ipcRenderer.send('git-fetch-message', []);
       });
 
       $('#pullBtn').click(function() {
-        if (self.filePath !== '') {
-          ipcRenderer.send('git-pull-message', []);
-        }
+        ipcRenderer.send('git-pull-message', []);
       });
 
       $('#pushBtn').click(function() {
-        if (self.filePath !== '') {
-          ipcRenderer.send('git-push-message', []);
-        }
+        ipcRenderer.send('git-push-message', []);
       });
 
       $('#branchBtn').click(async function() {
-        if (self.filePath !== '') {
-          await self.openCreateBranchWindow();
-        }
+        await self.openCreateBranchWindow();
       });
 
       $('#stageAllBtn').click(function() {
-        if (self.filePath !== '') {
-          ipcRenderer.send('git-stage-all-message', []);
-        }
+        ipcRenderer.send('git-stage-all-message', []);
       });
 
       $('#commitBtn').click(function() {
-        if (self.filePath !== '') {
-          const $messageTxt = $('#messageTxt');
-          ipcRenderer.send('git-commit-message', $messageTxt.val());
-          $messageTxt.val('');
-        }
+        const $messageTxt = $('#messageTxt');
+        ipcRenderer.send('git-commit-message', $messageTxt.val());
+        $messageTxt.val('');
       });
 
       $('#initBtn').click(function() {
         dialog.showOpenDialog({properties: ['openDirectory']}).then(function(result) {
-          self.filePath = result.filePaths[0];
           ipcRenderer.send('git-init-message', result.filePaths[0]);
         });
       });
 
       $('#openBtn').click(function() {
         dialog.showOpenDialog({properties: ['openDirectory']}).then(function(result) {
-          self.filePath = result.filePaths[0];
-          ipcRenderer.send('git-open-message', self.filePath);
+          ipcRenderer.send('git-open-message', result.filePaths[0]);
         });
+      });
+
+      $('#cloneBtn').click(async function() {
+        await self.openCloneWindow();
       });
 
       $('#refreshBtn').click(function() {
@@ -132,6 +114,30 @@ class Main {
 
     await new Promise(function(resolve, reject) {
       win.loadFile('./frontend/views/branch_name.html');
+      win.on('close', function() {
+        resolve();
+      });
+    });
+  }
+
+  /**
+   * Opens the window for entering clone information.
+   * @return {Promise<void>}
+   */
+  async openCloneWindow() {
+    const win = new BrowserWindow({
+      width: 400,
+      height: 300,
+      webPreferences: {
+        nodeIntegration: true,
+        contextIsolation: false,
+      },
+    });
+
+    remoteMain.enable(win.webContents);
+
+    await new Promise(function(resolve, reject) {
+      win.loadFile('./frontend/views/clone_prompt.html');
       win.on('close', function() {
         resolve();
       });
