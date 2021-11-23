@@ -113,7 +113,7 @@ class Main {
     remoteMain.enable(win.webContents);
 
     await new Promise(function(resolve, reject) {
-      win.loadFile('./frontend/views/branch_name.html');
+      win.loadFile('./frontend/views/branch_prompt.html');
       win.on('close', function() {
         resolve();
       });
