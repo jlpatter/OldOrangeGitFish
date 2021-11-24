@@ -15,6 +15,9 @@ module.exports = class GitManager {
     this.filePath = '';
     this.username = '';
     this.password = '';
+    this.privateKeyPath = '';
+    this.publicKeyPath = '';
+    this.passphrase = '';
     this.emptyTree = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
   }
 
@@ -575,17 +578,35 @@ module.exports = class GitManager {
   async getCredential(win) {
     const self = this;
 
-    if (self.username === '' || self.password === '') {
+    if ((self.username === '' || self.password === '') && (self.publicKeyPath === '' || self.privateKeyPath === '')) {
       await new Promise(function(resolve, reject) {
         win.webContents.send('git-fetch-creds', []);
         ipcMain.on('login-message', (event, arg) => {
           self.username = arg[0];
           self.password = arg[1];
+          self.publicKeyPath = '';
+          self.privateKeyPath = '';
+          self.passphrase = '';
+          resolve();
+        });
+
+        ipcMain.on('ssh-connect-message', (event, arg) => {
+          self.username = '';
+          self.password = '';
+          self.publicKeyPath = arg[0];
+          self.privateKeyPath = arg[1];
+          self.passphrase = arg[2];
           resolve();
         });
       });
     }
 
-    return Git.Credential.userpassPlaintextNew(self.username, self.password);
+    if (self.username !== '' && self.password !== '') {
+      return Git.Credential.userpassPlaintextNew(self.username, self.password);
+    } else if (self.publicKeyPath !== '' && self.privateKeyPath !== '') {
+      return Git.Credential.sshKeyNew('git', self.publicKeyPath, self.privateKeyPath, self.passphrase);
+    } else {
+      throw new Error('No Git credentials were entered!');
+    }
   }
 };

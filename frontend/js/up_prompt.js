@@ -1,4 +1,5 @@
 const ipcRenderer = require('electron').ipcRenderer;
+const dialog = require('@electron/remote').dialog;
 
 /**
  * User and Password prompt.
@@ -15,6 +16,26 @@ class UPPrompt {
       });
 
       $('#cancelBtn').click(function() {
+        window.close();
+      });
+
+      $('#sshPrivateKeyBtn').click(function() {
+        dialog.showOpenDialog({properties: ['openFile', 'showHiddenFiles']}).then(function(result) {
+          $('#sshPrivateKey').val(result.filePaths[0]);
+        });
+      });
+      $('#sshPublicKeyBtn').click(function() {
+        dialog.showOpenDialog({properties: ['openFile', 'showHiddenFiles']}).then(function(result) {
+          $('#sshPublicKey').val(result.filePaths[0]);
+        });
+      });
+
+      $('#sshConnectBtn').click(function() {
+        ipcRenderer.send('ssh-connect-message', [$('#sshPublicKey').val(), $('#sshPrivateKey').val(), $('#sshPassphrase').val()]);
+        window.close();
+      });
+
+      $('#sshCancelBtn').click(function() {
         window.close();
       });
     });
