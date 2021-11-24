@@ -2,11 +2,11 @@ const ipcRenderer = require('electron').ipcRenderer;
 const dialog = require('@electron/remote').dialog;
 
 /**
- * User and Password prompt.
+ * Credential prompt.
  */
-class UPPrompt {
+class CredentialPrompt {
   /**
-   * Sets up the login and cancel buttons.
+   * Sets up the user-password and ssh prompts.
    */
   run() {
     window.addEventListener('DOMContentLoaded', () => {
@@ -42,4 +42,4 @@ class UPPrompt {
   }
 }
 
-new UPPrompt().run();
+new CredentialPrompt().run();

@@ -87,7 +87,7 @@ class Main {
     remoteMain.enable(win.webContents);
 
     await new Promise(function(resolve, reject) {
-      win.loadFile('./frontend/views/username_password_prompt.html');
+      win.loadFile('./frontend/views/credential_prompt.html');
 
       win.on('close', function() {
         resolve();
