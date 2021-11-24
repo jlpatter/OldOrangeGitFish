@@ -354,12 +354,13 @@ module.exports = class GitManager {
             mainLine = mainLine.concat(shortLine);
           }
         }
-        progressBarManager.increasePercentage(((1 / branchCommits.length) * 0.84) * 100);
+        progressBarManager.increasePercentage((1 / branchCommits.length) * (0.5 - 0.15) * 100);
       }
 
       // Add mergeLines to the mainLine
       for (let i = 0; i < mergeCommits.length; i++) {
         await self.getMergeCommitLine(mergeCommits[i][0], mergeCommits[i][1], mainLine, lastCommit);
+        progressBarManager.increasePercentage((1 / mergeCommits.length) * (0.99 - 0.5) * 100);
       }
     }
     return mainLine;
