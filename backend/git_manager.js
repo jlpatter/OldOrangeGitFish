@@ -271,53 +271,19 @@ module.exports = class GitManager {
     const self = this;
     const mainLine = [];
     if (branchCommits.length > 0) {
-      const mergeCommitParents = [];
-      const commitsAfterBranch = [];
-
       // Build the mainline
       const revwalk = Git.Revwalk.create(self.repo);
       for (let i = 0; i < branchCommits.length; i++) {
         revwalk.push(branchCommits[i].id());
       }
       revwalk.sorting(Git.Revwalk.SORT.TOPOLOGICAL, Git.Revwalk.SORT.TIME);
-      let currentIndent = 0;
       await revwalk.commitWalk(2000).then(async function(vectorGitCommit) {
         for (let i = 0; i < vectorGitCommit.length; i++) {
-          if (vectorGitCommit[i].id().toString() in commitBranchDict) {
-            if (i - 1 >= 0) {
-              currentIndent++;
-
-              // Find the commit above the branch that also isn't a branch.
-              for (let j = i - 1; j >= 0; j--) {
-                if (!(vectorGitCommit[j].id().toString() in commitBranchDict)) {
-                  // This is a workaround for a bug in nodegit.
-                  vectorGitCommit[j].repo = self.repo;
-                  commitsAfterBranch.push(vectorGitCommit[j].parentId(0).toString());
-                  break;
-                }
-              }
-            }
+          const parentIds = [];
+          for (let j = 0; j < vectorGitCommit[i].parentcount(); j++) {
+            parentIds.push(vectorGitCommit[i].parentId(j).toString());
           }
-          if (mergeCommitParents.includes(vectorGitCommit[i].id().toString()) || commitsAfterBranch.includes(vectorGitCommit[i].id().toString())) {
-            currentIndent--;
-          }
-          if (vectorGitCommit[i].parentcount() === 2) {
-            // This is a workaround for a bug in nodegit.
-            vectorGitCommit[i].repo = self.repo;
-            await vectorGitCommit[i].getParents(10).then(function(parentCommits) {
-              mergeCommitParents.push(parentCommits[0].id().toString());
-              const parentIds = [];
-              for (let j = 0; j < parentCommits.length; j++) {
-                parentIds.push(parentCommits[j].id().toString());
-              }
-              mainLine.push(new CommitWrapper(currentIndent, vectorGitCommit[i], parentIds));
-              currentIndent++;
-            });
-          } else if (vectorGitCommit[i].parentcount() === 1) {
-            mainLine.push(new CommitWrapper(currentIndent, vectorGitCommit[i], [vectorGitCommit[i].parentId(0).toString()]));
-          } else {
-            mainLine.push(new CommitWrapper(currentIndent, vectorGitCommit[i], []));
-          }
+          mainLine.push(new CommitWrapper(0, i, vectorGitCommit[i], parentIds));
 
           progressBarManager.increasePercentage((1 / vectorGitCommit.length) * (0.99 - 0.05) * 100);
         }

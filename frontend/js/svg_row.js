@@ -6,15 +6,13 @@ module.exports = class SVGRow {
    * Construct the svg row
    * @param {string} sha
    * @param {Array<string>} parentShas
-   * @param {int} indent
    * @param {int} x
    * @param {int} y
    * @param {Array} entry
    */
-  constructor(sha, parentShas, indent, x, y, entry) {
+  constructor(sha, parentShas, x, y, entry) {
     this.sha = sha;
     this.parentShas = parentShas;
-    this.indent = indent;
     this.x = x;
     this.y = y;
     this.width = 0;
@@ -47,28 +45,57 @@ module.exports = class SVGRow {
    * Draw each of the components of the svg row.
    * @param {jQuery} $commitTableSVG
    * @param {Array<SVGRow>} prevs
+   * @param {Array<Array<boolean>>} mainTable
    */
-  draw($commitTableSVG, prevs) {
+  draw($commitTableSVG, prevs, mainTable) {
     const self = this;
+    if (mainTable[self.y] === undefined) {
+      mainTable.push([]);
+      mainTable[self.y].push(true);
+    } else if (mainTable[self.y][self.x] === undefined) {
+      mainTable[self.y].push(true);
+    } else if (mainTable[self.y][self.x] === true) {
+      let foundEmpty = false;
+      while (!foundEmpty) {
+        self.x++;
+        if (mainTable[self.y][self.x] === undefined) {
+          foundEmpty = true;
+          mainTable[self.y].push(true);
+        }
+      }
+    }
+    const pixelX = self.x * 20 + 20;
+    const pixelY = self.y * 30 + 20;
     const color = self.getColor();
-    const svgCircle = self.makeSVG('circle', {'cx': self.x, 'cy': self.y, 'r': 10, 'stroke': color, 'stroke-width': 1, 'fill': color});
+    const svgCircle = self.makeSVG('circle', {'cx': pixelX, 'cy': pixelY, 'r': 10, 'stroke': color, 'stroke-width': 1, 'fill': color});
     $commitTableSVG.append(svgCircle);
     if (prevs.length > 0) {
       for (let i = 0; i < prevs.length; i++) {
-        const svgLine = self.makeSVG('line', {x1: prevs[i].x, y1: prevs[i].y, x2: self.x, y2: self.y, style: 'stroke:' + color + ';stroke-width:4'});
+        // PrevsPixel is lower on the graph (with a higher y value).
+        for (let j = self.y + 1; j < prevs[i].y; j++) {
+          if (mainTable[j] === undefined) {
+            mainTable.push([]);
+            mainTable[j].push(true);
+          } else if (mainTable[j][self.x] === undefined) {
+            mainTable[j].push(true);
+          }
+        }
+        const prevsPixelX = prevs[i].x * 20 + 20;
+        const prevsPixelY = prevs[i].y * 30 + 20;
+        const svgLine = self.makeSVG('line', {x1: prevsPixelX, y1: prevsPixelY, x2: pixelX, y2: pixelY, style: 'stroke:' + color + ';stroke-width:4'});
         $commitTableSVG.append(svgLine);
       }
     }
-    let currentX = self.x + 15;
+    let currentX = pixelX + 15;
     self.entry[0].forEach(function(branch) {
       const branchText = '(' + branch + ') ';
-      const svgTextElem = self.makeSVG('text', {x: currentX, y: self.y + 6, fill: color});
+      const svgTextElem = self.makeSVG('text', {x: currentX, y: pixelY + 6, fill: color});
       svgTextElem.textContent = branchText;
       $commitTableSVG.append(svgTextElem);
       currentX += svgTextElem.getBBox().width + 5;
     });
 
-    const entryElem = self.makeSVG('text', {x: currentX, y: self.y + 6, fill: 'white'});
+    const entryElem = self.makeSVG('text', {x: currentX, y: pixelY + 6, fill: 'white'});
     entryElem.textContent = self.entry[1][1];
     $commitTableSVG.append(entryElem);
     self.width = currentX + entryElem.getBBox().width;
@@ -95,7 +122,7 @@ module.exports = class SVGRow {
    */
   getColor() {
     const self = this;
-    const colorNum = self.indent % 4;
+    const colorNum = self.x % 4;
     if (colorNum === 0) {
       return '\#00CC19';
     } else if (colorNum === 1) {
