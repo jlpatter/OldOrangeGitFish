@@ -276,10 +276,10 @@ module.exports = class GitManager {
 
       // Build the mainline
       const revwalk = Git.Revwalk.create(self.repo);
-      revwalk.sorting(Git.Revwalk.SORT.TOPOLOGICAL);
       for (let i = 0; i < branchCommits.length; i++) {
         revwalk.push(branchCommits[i].id());
       }
+      revwalk.sorting(Git.Revwalk.SORT.TOPOLOGICAL, Git.Revwalk.SORT.TIME);
       let currentIndent = 0;
       await revwalk.commitWalk(2000).then(async function(vectorGitCommit) {
         for (let i = 0; i < vectorGitCommit.length; i++) {
