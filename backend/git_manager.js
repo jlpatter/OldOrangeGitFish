@@ -205,7 +205,7 @@ module.exports = class GitManager {
         commitBranchDict = await self.buildBranchCommitsAndCommitBranchDict(gitReferences, branchCommits);
         progressBarManager.increasePercentage(5);
       });
-      const mainLine = await self.getAllCommitLines(progressBarManager, branchCommits);
+      const mainLine = await self.getAllCommitLines(progressBarManager, branchCommits, commitBranchDict);
       progressBarManager.setPercentage(99);
       const printableResults = self.getPrintableResults(mainLine, commitBranchDict);
       progressBarManager.increasePercentage(1);
@@ -264,103 +264,84 @@ module.exports = class GitManager {
    * Uses the branchCommits to get the commit 'lines', which are lines of commits.
    * @param {ProgressBarManager} progressBarManager
    * @param {Array<Commit>} branchCommits
+   * @param {Object} commitBranchDict
    * @return {Promise<*[]>}
    */
-  async getAllCommitLines(progressBarManager, branchCommits) {
+  async getAllCommitLines(progressBarManager, branchCommits, commitBranchDict) {
     const self = this;
     let mainLine = [];
     if (branchCommits.length > 0) {
-      const mergeCommits = [];
+      const mergeCommitParents = [];
 
       // Build the mainline
-      let counter = 0;
-      let isTmpMainLineFinished = false;
-      let tmpMainLineChild = branchCommits[0];
-      while (!isTmpMainLineFinished) {
-        if (counter < 2000) {
-          await tmpMainLineChild.getParents(10).then(function(parents) {
-            if (parents.length > 2) {
-              throw new RangeError('I honestly didn\'t know a commit could have more than 2 parents...');
-            } else if (parents.length === 0) {
-              isTmpMainLineFinished = true;
-            } else {
-              if (parents.length === 2) {
-                mergeCommits.push([tmpMainLineChild, parents[1]]);
-              }
-              mainLine.push(new CommitWrapper(0, tmpMainLineChild, parents));
-              tmpMainLineChild = parents[0];
-            }
-          });
-        } else {
-          isTmpMainLineFinished = true;
-        }
-        counter++;
-      }
-      mainLine.push(new CommitWrapper(0, tmpMainLineChild, []));
-
-      progressBarManager.increasePercentage(5);
-
-      // Only show the first 2000 commits.
-      const lastCommit = mainLine[mainLine.length - 1].commit;
-
-      progressBarManager.increasePercentage(5);
-
-      for (let i = 1; i < branchCommits.length; i++) {
-        if (!self.containsCommit(branchCommits[i], mainLine) && branchCommits[i].date() > lastCommit.date()) {
-          // Build shortlines from branchCommits
-          const shortLine = [new CommitWrapper(-1, branchCommits[i], [])];
-          let child = branchCommits[i];
-          let isFinished = false;
-          let mainLineCommit = null;
-          while (!isFinished) {
-            await child.getParents(10).then(function(parents) {
-              if (parents.length === 2) {
-                mergeCommits.push([child, parents[1]]);
-              }
-              if (parents.length > 2) {
-                throw new RangeError('I honestly didn\'t know a commit could have more than 2 parents...');
-              } else if (parents.length === 0 || parents[0].date() < lastCommit.date()) {
-                isFinished = true;
-              } else if (self.containsCommit(parents[0], mainLine)) {
-                isFinished = true;
-                mainLineCommit = parents[0];
-              } else {
-                shortLine.push(new CommitWrapper(-1, parents[0], []));
-                child = parents[0];
-              }
+      const revwalk = Git.Revwalk.create(self.repo);
+      revwalk.sorting(Git.Revwalk.SORT.TOPOLOGICAL);
+      revwalk.push(branchCommits[0].id());
+      await revwalk.commitWalk(2000).then(async function(vectorGitCommit) {
+        for (let i = 0; i < vectorGitCommit.length; i++) {
+          if (vectorGitCommit[i].parentcount() === 2) {
+            // This is a workaround for a bug in nodegit.
+            vectorGitCommit[i].repo = self.repo;
+            await vectorGitCommit[i].getParents(10).then(function(parentCommits) {
+              mergeCommitParents.push(parentCommits[1]);
+              mainLine.push(new CommitWrapper(0, vectorGitCommit[i], parentCommits));
             });
-          }
-
-          // Set indents and parent commits of shortLine commits.
-          for (let i = 0; i < shortLine.length; i++) {
-            if (mainLineCommit !== null) {
-              shortLine[i].indent = mainLine[self.lineIndexOf(mainLineCommit, mainLine)].indent + 1;
-            } else {
-              shortLine[i].indent = 1;
-            }
-            await shortLine[i].commit.getParents(10).then(function(parents) {
-              if (parents.length > 2) {
-                throw new RangeError('I honestly didn\'t know a commit could have more than 2 parents...');
-              } else if (parents.length === 1 || parents.length === 2) {
-                shortLine[i].parentCommits = parents;
-              }
-            });
-          }
-
-          if (mainLineCommit !== null) {
-            // Inserts shortLine into mainLine at self.lineIndexOf(mainLineCommit, mainLine)
-            mainLine.splice(self.lineIndexOf(mainLineCommit, mainLine), 0, ...shortLine);
+          } else if (i + 1 < vectorGitCommit.length) {
+            mainLine.push(new CommitWrapper(0, vectorGitCommit[i], [vectorGitCommit[i + 1]]));
           } else {
-            mainLine = mainLine.concat(shortLine);
+            mainLine.push(new CommitWrapper(0, vectorGitCommit[i], []));
+          }
+
+          progressBarManager.increasePercentage((1 / vectorGitCommit.length) * (0.5 - 0.05) * 100);
+        }
+      });
+      const lastMainLineCommit = mainLine[mainLine.length - 1].commit;
+
+      // build the branchlines
+      for (let i = 1; i < branchCommits.length; i++) {
+        const branchRevWalk = Git.Revwalk.create(self.repo);
+        branchRevWalk.sorting(Git.Revwalk.SORT.TOPOLOGICAL);
+        branchRevWalk.push(branchCommits[i].id());
+        const shortLine = [];
+        let mainLineCommit = null;
+        await branchRevWalk.commitWalk(2000).then(async function(vectorGitCommit) {
+          for (let j = 0; j < vectorGitCommit.length; j++) {
+            if (self.containsCommit(vectorGitCommit[j], mainLine)) {
+              mainLineCommit = vectorGitCommit[j];
+              break;
+            } else if (vectorGitCommit[i].date() < lastMainLineCommit.date()) {
+              break;
+            }
+            if (vectorGitCommit[j].parentcount() === 2) {
+              // This is a workaround for a bug in nodegit.
+              vectorGitCommit[j].repo = self.repo;
+              await vectorGitCommit[j].getParents(10).then(function(parentCommits) {
+                mergeCommitParents.push(parentCommits[1]);
+                shortLine.push(new CommitWrapper(-1, vectorGitCommit[j], parentCommits));
+              });
+            } else if (j + 1 < vectorGitCommit.length) {
+              shortLine.push(new CommitWrapper(-1, vectorGitCommit[j], [vectorGitCommit[j + 1]]));
+            } else {
+              shortLine.push(new CommitWrapper(-1, vectorGitCommit[j], []));
+            }
+          }
+        });
+
+        // Set the indent of the branch line.
+        for (let j = 0; j < shortLine.length; j++) {
+          if (mainLineCommit !== null) {
+            shortLine[j].indent = mainLine[self.lineIndexOf(mainLineCommit, mainLine)].indent + 1;
+          } else {
+            shortLine[j].indent = -1;
           }
         }
-        progressBarManager.increasePercentage((1 / branchCommits.length) * (0.5 - 0.15) * 100);
-      }
 
-      // Add mergeLines to the mainLine
-      for (let i = 0; i < mergeCommits.length; i++) {
-        await self.getMergeCommitLine(mergeCommits[i][0], mergeCommits[i][1], mainLine, lastCommit);
-        progressBarManager.increasePercentage((1 / mergeCommits.length) * (0.99 - 0.5) * 100);
+        if (mainLineCommit !== null) {
+          mainLine.splice(self.lineIndexOf(mainLineCommit, mainLine), 0, ...shortLine);
+        } else {
+          mainLine = mainLine.concat(shortLine);
+        }
+        progressBarManager.increasePercentage((1 / branchCommits.length) * (0.99 - 0.5) * 100);
       }
     }
     return mainLine;
@@ -433,12 +414,7 @@ module.exports = class GitManager {
    * @return {number}
    */
   lineIndexOf(commit, line) {
-    for (let i = 0; i < line.length; i++) {
-      if (line[i].commit.id().toString() === commit.id().toString()) {
-        return i;
-      }
-    }
-    return -1;
+    return line.findIndex((e) => e.commit.id().toString() === commit.id().toString());
   }
 
   /**
