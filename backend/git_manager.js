@@ -269,132 +269,61 @@ module.exports = class GitManager {
    */
   async getAllCommitLines(progressBarManager, branchCommits, commitBranchDict) {
     const self = this;
-    let mainLine = [];
+    const mainLine = [];
     if (branchCommits.length > 0) {
       const mergeCommitParents = [];
+      const commitsAfterBranch = [];
 
       // Build the mainline
       const revwalk = Git.Revwalk.create(self.repo);
       revwalk.sorting(Git.Revwalk.SORT.TOPOLOGICAL);
-      revwalk.push(branchCommits[0].id());
+      for (let i = 0; i < branchCommits.length; i++) {
+        revwalk.push(branchCommits[i].id());
+      }
+      let currentIndent = 0;
       await revwalk.commitWalk(2000).then(async function(vectorGitCommit) {
         for (let i = 0; i < vectorGitCommit.length; i++) {
+          if (vectorGitCommit[i].id().toString() in commitBranchDict) {
+            if (i - 1 >= 0) {
+              currentIndent++;
+
+              // Find the commit above the branch that also isn't a branch.
+              for (let j = i - 1; j >= 0; j--) {
+                if (!(vectorGitCommit[j].id().toString() in commitBranchDict)) {
+                  // This is a workaround for a bug in nodegit.
+                  vectorGitCommit[j].repo = self.repo;
+                  commitsAfterBranch.push(vectorGitCommit[j].parentId(0).toString());
+                  break;
+                }
+              }
+            }
+          }
+          if (mergeCommitParents.includes(vectorGitCommit[i].id().toString()) || commitsAfterBranch.includes(vectorGitCommit[i].id().toString())) {
+            currentIndent--;
+          }
           if (vectorGitCommit[i].parentcount() === 2) {
             // This is a workaround for a bug in nodegit.
             vectorGitCommit[i].repo = self.repo;
             await vectorGitCommit[i].getParents(10).then(function(parentCommits) {
-              mergeCommitParents.push(parentCommits[1]);
-              mainLine.push(new CommitWrapper(0, vectorGitCommit[i], parentCommits));
+              mergeCommitParents.push(parentCommits[0].id().toString());
+              const parentIds = [];
+              for (let j = 0; j < parentCommits.length; j++) {
+                parentIds.push(parentCommits[j].id().toString());
+              }
+              mainLine.push(new CommitWrapper(currentIndent, vectorGitCommit[i], parentIds));
+              currentIndent++;
             });
-          } else if (i + 1 < vectorGitCommit.length) {
-            mainLine.push(new CommitWrapper(0, vectorGitCommit[i], [vectorGitCommit[i + 1]]));
+          } else if (vectorGitCommit[i].parentcount() === 1) {
+            mainLine.push(new CommitWrapper(currentIndent, vectorGitCommit[i], [vectorGitCommit[i].parentId(0).toString()]));
           } else {
-            mainLine.push(new CommitWrapper(0, vectorGitCommit[i], []));
+            mainLine.push(new CommitWrapper(currentIndent, vectorGitCommit[i], []));
           }
 
-          progressBarManager.increasePercentage((1 / vectorGitCommit.length) * (0.5 - 0.05) * 100);
+          progressBarManager.increasePercentage((1 / vectorGitCommit.length) * (0.99 - 0.05) * 100);
         }
       });
-      const lastMainLineCommit = mainLine[mainLine.length - 1].commit;
-
-      // build the branchlines
-      for (let i = 1; i < branchCommits.length; i++) {
-        const branchRevWalk = Git.Revwalk.create(self.repo);
-        branchRevWalk.sorting(Git.Revwalk.SORT.TOPOLOGICAL);
-        branchRevWalk.push(branchCommits[i].id());
-        const shortLine = [];
-        let mainLineCommit = null;
-        await branchRevWalk.commitWalk(2000).then(async function(vectorGitCommit) {
-          for (let j = 0; j < vectorGitCommit.length; j++) {
-            if (self.containsCommit(vectorGitCommit[j], mainLine)) {
-              mainLineCommit = vectorGitCommit[j];
-              break;
-            } else if (vectorGitCommit[i].date() < lastMainLineCommit.date()) {
-              break;
-            }
-            if (vectorGitCommit[j].parentcount() === 2) {
-              // This is a workaround for a bug in nodegit.
-              vectorGitCommit[j].repo = self.repo;
-              await vectorGitCommit[j].getParents(10).then(function(parentCommits) {
-                mergeCommitParents.push(parentCommits[1]);
-                shortLine.push(new CommitWrapper(-1, vectorGitCommit[j], parentCommits));
-              });
-            } else if (j + 1 < vectorGitCommit.length) {
-              shortLine.push(new CommitWrapper(-1, vectorGitCommit[j], [vectorGitCommit[j + 1]]));
-            } else {
-              shortLine.push(new CommitWrapper(-1, vectorGitCommit[j], []));
-            }
-          }
-        });
-
-        // Set the indent of the branch line.
-        for (let j = 0; j < shortLine.length; j++) {
-          if (mainLineCommit !== null) {
-            shortLine[j].indent = mainLine[self.lineIndexOf(mainLineCommit, mainLine)].indent + 1;
-          } else {
-            shortLine[j].indent = -1;
-          }
-        }
-
-        if (mainLineCommit !== null) {
-          mainLine.splice(self.lineIndexOf(mainLineCommit, mainLine), 0, ...shortLine);
-        } else {
-          mainLine = mainLine.concat(shortLine);
-        }
-        progressBarManager.increasePercentage((1 / branchCommits.length) * (0.99 - 0.5) * 100);
-      }
     }
     return mainLine;
-  }
-
-  /**
-   * Gets the mergecommitline.
-   * @param {Commit} mergeCommit
-   * @param {Commit} mergeCommitParent
-   * @param {Array<CommitWrapper>} parentLine
-   * @param {Commit} lastCommit
-   * @return {Promise<Array<CommitWrapper>>}
-   */
-  async getMergeCommitLine(mergeCommit, mergeCommitParent, parentLine, lastCommit) {
-    const self = this;
-    const indent = parentLine[self.lineIndexOf(mergeCommit, parentLine)].indent + 1;
-    const mergeCommitParents = [];
-    const mergeLine = [];
-    let isFinished = false;
-    let child = mergeCommitParent;
-
-    mergeLine.push(new CommitWrapper(indent, child, []));
-    while (!isFinished) {
-      await child.getParents(10).then(async function(parents) {
-        if (parents.length === 2) {
-          mergeCommitParents.push([child, parents[1]]);
-        }
-        if (parents.length > 2) {
-          throw new RangeError('I honestly didn\'t know a commit could have more than 2 parents...');
-        } else if (parents.length === 0 || self.containsCommit(parents[0], parentLine) || parents[0].date() < lastCommit.date()) {
-          isFinished = true;
-        } else {
-          mergeLine.push(new CommitWrapper(indent, parents[0], []));
-          child = parents[0];
-        }
-      });
-    }
-    for (let i = 0; i < mergeLine.length; i++) {
-      await mergeLine[i].commit.getParents(10).then(function(parents) {
-        if (parents.length > 2) {
-          throw new RangeError('I honestly didn\'t know a commit could have more than 2 parents...');
-        } else if (parents.length === 1 || parents.length === 2) {
-          mergeLine[i].parentCommits = parents;
-        }
-      });
-    }
-
-    parentLine.splice(self.lineIndexOf(mergeCommit, parentLine) + 1, 0, ...mergeLine);
-
-    for (let i = 0; i < mergeCommitParents; i++) {
-      await self.getMergeCommitLine(mergeCommitParents[i][0], mergeCommitParents[i][1], parentLine, lastCommit);
-    }
-    return mergeLine;
   }
 
   /**
