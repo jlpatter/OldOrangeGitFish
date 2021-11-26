@@ -110,8 +110,11 @@ module.exports = class SVGRow {
       for (let i = 0; i < childSVGRows.length; i++) {
         const childPixelX = childSVGRows[i].x * 20 + 20;
         const childPixelY = childSVGRows[i].y * 30 + 20;
-        const svgLine = self.makeSVG('line', {x1: childPixelX, y1: childPixelY, x2: pixelX, y2: pixelY, style: 'stroke:' + self.getColor(childSVGRows[i].x) + ';stroke-width:4'});
+        const beforePixelY = (self.y - 1) * 30 + 20;
+        const svgLine = self.makeSVG('line', {x1: childPixelX, y1: childPixelY, x2: childPixelX, y2: beforePixelY, style: 'stroke:' + self.getColor(childSVGRows[i].x) + ';stroke-width:4'});
+        const angledSVGLine = self.makeSVG('line', {x1: childPixelX, y1: beforePixelY, x2: pixelX, y2: pixelY, style: 'stroke:' + self.getColor(childSVGRows[i].x) + ';stroke-width:4'});
         $commitTableSVG.append(svgLine);
+        $commitTableSVG.append(angledSVGLine);
       }
     }
 
