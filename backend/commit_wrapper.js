@@ -19,7 +19,7 @@ module.exports = class CommitWrapper {
 
   /**
    * Constructs and returns an array that can be sent via ipcMain
-   * @return {Array}
+   * @return {Array<Array<number>|Array<string>|string>}
    */
   getParseableFormat() {
     return [[this.x, this.y], this.commit.summary(), this.commit.id().toString(), this.parentCommitIds, this.childCommitIds];

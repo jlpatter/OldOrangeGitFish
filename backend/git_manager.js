@@ -77,7 +77,7 @@ module.exports = class GitManager {
 
   /**
    * Gets the unstaged and staged files.
-   * @return {Promise}
+   * @return {Promise<Array<Array<Array<number|string>>>>}
    */
   async gitDiff() {
     const self = this;
@@ -111,7 +111,7 @@ module.exports = class GitManager {
 
   /**
    * Gets the staged files.
-   * @return {Promise<*[]>}
+   * @return {Promise<Array<Array<number|string>>>}
    */
   async getStagedChanges() {
     const self = this;
@@ -129,7 +129,7 @@ module.exports = class GitManager {
 
   /**
    * Stages the change of a single file
-   * @param {Array} statusAndFilePath
+   * @param {Array<number|string>} statusAndFilePath
    * @return {Promise<void>}
    */
   async gitStage(statusAndFilePath) {
@@ -145,7 +145,7 @@ module.exports = class GitManager {
 
   /**
    * Stages the change of a single file
-   * @param {Array} statusAndFilePath
+   * @param {Array<number|string>} statusAndFilePath
    * @return {Promise<void>}
    */
   async gitUnstage(statusAndFilePath) {
@@ -188,7 +188,7 @@ module.exports = class GitManager {
   /**
    * Gets the log of commits to send to the main commit table.
    * @param {ProgressBarManager} progressBarManager The main browser window to send progress bar stuff to.
-   * @return {Promise<*[]>}
+   * @return {Promise<Array<Array<Array<string>|string>>>}
    */
   async gitLog(progressBarManager) {
     const self = this;
@@ -205,7 +205,7 @@ module.exports = class GitManager {
         commitBranchDict = await self.buildBranchCommitsAndCommitBranchDict(gitReferences, branchCommits);
         progressBarManager.increasePercentage(5);
       });
-      const mainLine = await self.getAllCommitLines(progressBarManager, branchCommits, commitBranchDict);
+      const mainLine = await self.getAllCommitLines(progressBarManager, branchCommits);
       progressBarManager.setPercentage(99);
       const printableResults = self.getPrintableResults(mainLine, commitBranchDict);
       progressBarManager.increasePercentage(1);
@@ -215,31 +215,18 @@ module.exports = class GitManager {
 
   /**
    * Gets the commits from branches and adds them to the branchCommits variable.
-   * @param {Array<string>} gitReferences Branches and tags
+   * @param {Object<string, Reference>} gitReferences Branches and tags
    * @param {Array<Commit>} branchCommits The variable used to store branch commits
-   * @return {Promise<{}>}
+   * @return {Promise<Object<string, string>>}
    */
   async buildBranchCommitsAndCommitBranchDict(gitReferences, branchCommits) {
     const self = this;
     const commitBranchDict = {};
-    const gitRefValues = Object.keys(gitReferences).map(function(key) {
-      return gitReferences[key];
-    });
+    const gitRefValues = Object.values(gitReferences);
     for (const ref of gitRefValues) {
-      let remoteMasterCommit = null;
-      // TODO: Un-hardcode the use of origin here (and master and main)
-      if (ref.toString().indexOf('origin/master') >= 0 || ref.toString().indexOf('origin/main') >= 0) {
-        await self.repo.getBranchCommit(ref).then(function(commit) {
-          remoteMasterCommit = commit;
-        });
-      }
       if (!ref.toString().startsWith('refs/tags')) {
         const commitId = await self.repo.getBranchCommit(ref).then(function(commit) {
-          if (remoteMasterCommit !== null && remoteMasterCommit.id().toString() === commit.id().toString()) {
-            branchCommits.unshift(commit);
-          } else {
-            branchCommits.push(commit);
-          }
+          branchCommits.push(commit);
           return commit.id().toString();
         });
         if (ref.isHead()) {
@@ -264,10 +251,9 @@ module.exports = class GitManager {
    * Uses the branchCommits to get the commit 'lines', which are lines of commits.
    * @param {ProgressBarManager} progressBarManager
    * @param {Array<Commit>} branchCommits
-   * @param {Object} commitBranchDict
-   * @return {Promise<*[]>}
+   * @return {Promise<Array<CommitWrapper>>}
    */
-  async getAllCommitLines(progressBarManager, branchCommits, commitBranchDict) {
+  async getAllCommitLines(progressBarManager, branchCommits) {
     const self = this;
     const mainLine = [];
     if (branchCommits.length > 0) {
@@ -314,7 +300,7 @@ module.exports = class GitManager {
    * Pairs a branchList to a particular commit and returns the string values.
    * @param {Array<CommitWrapper>} masterLine
    * @param {Object} commitBranchDict
-   * @return {*[]}
+   * @return {Array<Array<Array<string>|string>>}
    */
   getPrintableResults(masterLine, commitBranchDict) {
     const results = [];
@@ -330,7 +316,7 @@ module.exports = class GitManager {
 
   /**
    * Checks out a branch.
-   * @param {string | Reference} branch
+   * @param {string|Reference} branch
    * @return {Promise<void>}
    */
   async gitCheckout(branch) {
@@ -430,6 +416,7 @@ module.exports = class GitManager {
   /**
    * Creates a new branch
    * @param {string} branchName
+   * @return {Promise<void>}
    */
   async gitBranch(branchName) {
     const self = this;
@@ -443,7 +430,7 @@ module.exports = class GitManager {
   /**
    * Gets the credentials for remote operations.
    * @param {Electron.CrossProcessExports.BrowserWindow} win
-   * @return {Promise<*>}
+   * @return {Promise<Git.Credential>}
    */
   async getCredential(win) {
     const self = this;
