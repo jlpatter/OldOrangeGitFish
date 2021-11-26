@@ -121,7 +121,7 @@ class Main {
   }
 
   /**
-   * Opens the window for entering clone information.
+   * Opens the window for entering clone information then waits for it to close.
    * @return {Promise<void>}
    */
   async openCloneWindow() {
@@ -154,7 +154,7 @@ class Main {
 
   /**
    * Refreshes the branch tables and commit table.
-   * @param {Array} results
+   * @param {Array<Array<Array<string>|string>>} results
    */
   refreshBranchAndCommitTables(results) {
     const self = this;
@@ -193,7 +193,7 @@ class Main {
 
   /**
    * Refreshes the staging tables.
-   * @param {Array} results
+   * @param {Array<Array<Array<number|string>>>} results
    */
   refreshStagingTables(results) {
     const self = this;

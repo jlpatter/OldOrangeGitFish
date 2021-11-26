@@ -44,7 +44,7 @@ module.exports = class SVGRow {
   }
 
   /**
-   * Gets the SVGRow parents
+   * Gets the SVGRow children
    * @param {Array<SVGRow>} array
    * @return {Array<SVGRow>}
    */
@@ -70,7 +70,7 @@ module.exports = class SVGRow {
    * @param {jQuery} $commitTableSVG
    * @param {Array<SVGRow>} parentSVGRows
    * @param {Array<SVGRow>} childSVGRows
-   * @param {Object} mainTable
+   * @param {Object<number, Object<number, boolean>>} mainTable
    */
   draw($commitTableSVG, parentSVGRows, childSVGRows, mainTable) {
     const self = this;
@@ -152,8 +152,8 @@ module.exports = class SVGRow {
   /**
    * Makes an SVG element
    * @param {string} tag
-   * @param {Object} attrs
-   * @return {*}
+   * @param {Object<string, number|string>} attrs
+   * @return {SVGElement|SVGGraphicsElement}
    */
   makeSVG(tag, attrs) {
     const el = document.createElementNS('http://www.w3.org/2000/svg', tag);

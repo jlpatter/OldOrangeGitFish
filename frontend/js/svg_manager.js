@@ -14,7 +14,7 @@ module.exports = class SVGManager {
 
   /**
    * Refreshes the commit table with new entry results.
-   * @param {Array} entryResults
+   * @param {Array<Array<Array<string>|string>>} entryResults
    */
   updateCommitTable(entryResults) {
     this.entryResults = entryResults;
