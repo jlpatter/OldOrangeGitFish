@@ -128,7 +128,12 @@ module.exports = class SVGRow {
     $commitTableSVG.append(svgCircle);
 
     // Draw the branch text.
-    let currentX = pixelX + 15;
+    const occupiedRowNums = Object.keys(mainTable[self.y]);
+    let largestXValue = 0;
+    for (let i = 0; i < occupiedRowNums.length; i++) {
+      largestXValue = Math.max(largestXValue, Number(occupiedRowNums[i]));
+    }
+    let currentX = (largestXValue + 1) * 20 + 20;
     self.entry[0].forEach(function(branch) {
       const branchText = '(' + branch + ') ';
       const svgTextElem = self.makeSVG('text', {x: currentX, y: pixelY + 6, fill: color});
