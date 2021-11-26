@@ -277,17 +277,29 @@ module.exports = class GitManager {
         revwalk.push(branchCommits[i].id());
       }
       revwalk.sorting(Git.Revwalk.SORT.TOPOLOGICAL, Git.Revwalk.SORT.TIME);
+      const childrenIds = {};
       await revwalk.commitWalk(2000).then(async function(vectorGitCommit) {
         for (let i = 0; i < vectorGitCommit.length; i++) {
           const parentIds = [];
           for (let j = 0; j < vectorGitCommit[i].parentcount(); j++) {
             parentIds.push(vectorGitCommit[i].parentId(j).toString());
+            if (vectorGitCommit[i].parentId(j).toString() in childrenIds) {
+              childrenIds[vectorGitCommit[i].parentId(j).toString()].push(vectorGitCommit[i].id().toString());
+            } else {
+              childrenIds[vectorGitCommit[i].parentId(j).toString()] = [vectorGitCommit[i].id().toString()];
+            }
           }
           mainLine.push(new CommitWrapper(0, i, vectorGitCommit[i], parentIds));
 
           progressBarManager.increasePercentage((1 / vectorGitCommit.length) * (0.99 - 0.05) * 100);
         }
       });
+
+      for (let i = 0; i < mainLine.length; i++) {
+        if (mainLine[i].commit.id().toString() in childrenIds) {
+          mainLine[i].childCommitIds = childrenIds[mainLine[i].commit.id().toString()];
+        }
+      }
     }
     return mainLine;
   }

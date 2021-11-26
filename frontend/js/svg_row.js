@@ -6,13 +6,15 @@ module.exports = class SVGRow {
    * Construct the svg row
    * @param {string} sha
    * @param {Array<string>} parentShas
+   * @param {Array<string>} childrenShas
    * @param {int} x
    * @param {int} y
    * @param {Array} entry
    */
-  constructor(sha, parentShas, x, y, entry) {
+  constructor(sha, parentShas, childrenShas, x, y, entry) {
     this.sha = sha;
     this.parentShas = parentShas;
+    this.childrenShas = childrenShas;
     this.x = x;
     this.y = y;
     this.width = 0;
@@ -42,50 +44,79 @@ module.exports = class SVGRow {
   }
 
   /**
+   * Gets the SVGRow parents
+   * @param {Array<SVGRow>} array
+   * @return {Array<SVGRow>}
+   */
+  getChildSVGRows(array) {
+    const self = this;
+    if (self.childrenShas.length === 0) {
+      return [];
+    }
+    const childSVGRows = [];
+    for (let i = 0; i < self.childrenShas.length; i++) {
+      for (let j = 0; j < array.length; j++) {
+        if (self.childrenShas[i] === array[j].sha) {
+          childSVGRows.push(array[j]);
+          break;
+        }
+      }
+    }
+    return childSVGRows;
+  }
+
+  /**
    * Draw each of the components of the svg row.
    * @param {jQuery} $commitTableSVG
-   * @param {Array<SVGRow>} prevs
-   * @param {Array<Array<boolean>>} mainTable
+   * @param {Array<SVGRow>} parentSVGRows
+   * @param {Array<SVGRow>} childSVGRows
+   * @param {Object} mainTable
    */
-  draw($commitTableSVG, prevs, mainTable) {
+  draw($commitTableSVG, parentSVGRows, childSVGRows, mainTable) {
     const self = this;
-    if (mainTable[self.y] === undefined) {
-      mainTable.push([]);
-      mainTable[self.y].push(true);
-    } else if (mainTable[self.y][self.x] === undefined) {
-      mainTable[self.y].push(true);
+    if (!(self.y in mainTable)) {
+      mainTable[self.y] = {};
+      mainTable[self.y][self.x] = true;
+    } else if (!(self.x in mainTable[self.y])) {
+      mainTable[self.y][self.x] = true;
     } else if (mainTable[self.y][self.x] === true) {
       let foundEmpty = false;
       while (!foundEmpty) {
         self.x++;
-        if (mainTable[self.y][self.x] === undefined) {
+        if (!(self.x in mainTable[self.y])) {
           foundEmpty = true;
-          mainTable[self.y].push(true);
+          mainTable[self.y][self.x] = true;
         }
       }
     }
     const pixelX = self.x * 20 + 20;
     const pixelY = self.y * 30 + 20;
-    const color = self.getColor();
+    const color = self.getColor(self.x);
     const svgCircle = self.makeSVG('circle', {'cx': pixelX, 'cy': pixelY, 'r': 10, 'stroke': color, 'stroke-width': 1, 'fill': color});
     $commitTableSVG.append(svgCircle);
-    if (prevs.length > 0) {
-      for (let i = 0; i < prevs.length; i++) {
-        // PrevsPixel is lower on the graph (with a higher y value).
-        for (let j = self.y + 1; j < prevs[i].y; j++) {
-          if (mainTable[j] === undefined) {
-            mainTable.push([]);
-            mainTable[j].push(true);
-          } else if (mainTable[j][self.x] === undefined) {
-            mainTable[j].push(true);
+    if (parentSVGRows.length > 0) {
+      for (let i = 0; i < parentSVGRows.length; i++) {
+        // ParentSVGRows are lower on the graph (with a higher y value).
+        for (let j = self.y + 1; j < parentSVGRows[i].y; j++) {
+          if (!(j in mainTable)) {
+            mainTable[j] = {};
+            mainTable[j][self.x] = true;
+          } else if (!(self.x in mainTable[j])) {
+            mainTable[j][self.x] = true;
           }
         }
-        const prevsPixelX = prevs[i].x * 20 + 20;
-        const prevsPixelY = prevs[i].y * 30 + 20;
-        const svgLine = self.makeSVG('line', {x1: prevsPixelX, y1: prevsPixelY, x2: pixelX, y2: pixelY, style: 'stroke:' + color + ';stroke-width:4'});
+      }
+    }
+
+    if (childSVGRows.length > 0) {
+      for (let i = 0; i < childSVGRows.length; i++) {
+        const childPixelX = childSVGRows[i].x * 20 + 20;
+        const childPixelY = childSVGRows[i].y * 30 + 20;
+        const svgLine = self.makeSVG('line', {x1: childPixelX, y1: childPixelY, x2: pixelX, y2: pixelY, style: 'stroke:' + self.getColor(childSVGRows[i].x) + ';stroke-width:4'});
         $commitTableSVG.append(svgLine);
       }
     }
+
     let currentX = pixelX + 15;
     self.entry[0].forEach(function(branch) {
       const branchText = '(' + branch + ') ';
@@ -118,11 +149,11 @@ module.exports = class SVGRow {
 
   /**
    * Gets the color of the row based on the indent
+   * @param {number} xValue
    * @return {string}
    */
-  getColor() {
-    const self = this;
-    const colorNum = self.x % 4;
+  getColor(xValue) {
+    const colorNum = xValue % 4;
     if (colorNum === 0) {
       return '\#00CC19';
     } else if (colorNum === 1) {

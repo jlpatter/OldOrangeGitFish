@@ -14,6 +14,7 @@ module.exports = class CommitWrapper {
     this.y = y;
     this.commit = commit;
     this.parentCommitIds = parentCommitIds;
+    this.childCommitIds = [];
   }
 
   /**
@@ -21,10 +22,6 @@ module.exports = class CommitWrapper {
    * @return {Array}
    */
   getParseableFormat() {
-    if (this.parentCommitIds.length > 0) {
-      return [[this.x, this.y], this.commit.summary(), this.commit.id().toString(), this.parentCommitIds];
-    } else {
-      return [[this.x, this.y], this.commit.summary(), this.commit.id().toString(), []];
-    }
+    return [[this.x, this.y], this.commit.summary(), this.commit.id().toString(), this.parentCommitIds, this.childCommitIds];
   }
 };

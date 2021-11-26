@@ -32,13 +32,13 @@ module.exports = class SVGManager {
 
     const svgRows = [];
     for (const entry of self.entryResults) {
-      svgRows.push(new SVGRow(entry[1][2], entry[1][3], entry[1][0][0], entry[1][0][1], entry));
+      svgRows.push(new SVGRow(entry[1][2], entry[1][3], entry[1][4], entry[1][0][0], entry[1][0][1], entry));
     }
 
     let maxWidth = 0;
-    const mainTable = [];
+    const mainTable = {};
     for (const svgRow of svgRows) {
-      svgRow.draw(self.$commitTableSVG, svgRow.getParentSVGRows(svgRows), mainTable);
+      svgRow.draw(self.$commitTableSVG, svgRow.getParentSVGRows(svgRows), svgRow.getChildSVGRows(svgRows), mainTable);
       maxWidth = Math.max(maxWidth, svgRow.width);
     }
 
