@@ -271,30 +271,36 @@ module.exports = class GitManager {
     const self = this;
     const mainLine = [];
     if (branchCommits.length > 0) {
-      // Build the mainline
+      // Start a walk from the branchCommits.
       const revwalk = Git.Revwalk.create(self.repo);
       for (let i = 0; i < branchCommits.length; i++) {
         revwalk.push(branchCommits[i].id());
       }
       revwalk.sorting(Git.Revwalk.SORT.TOPOLOGICAL, Git.Revwalk.SORT.TIME);
       const childrenIds = {};
+      // Only walk 2000 commits.
       await revwalk.commitWalk(2000).then(async function(vectorGitCommit) {
         for (let i = 0; i < vectorGitCommit.length; i++) {
           const parentIds = [];
           for (let j = 0; j < vectorGitCommit[i].parentcount(); j++) {
+            // Get the parentIds of the current commit to be used by the frontend.
             parentIds.push(vectorGitCommit[i].parentId(j).toString());
+            // Get the childrenIds of the parent commit to be used by the frontend.
             if (vectorGitCommit[i].parentId(j).toString() in childrenIds) {
               childrenIds[vectorGitCommit[i].parentId(j).toString()].push(vectorGitCommit[i].id().toString());
             } else {
               childrenIds[vectorGitCommit[i].parentId(j).toString()] = [vectorGitCommit[i].id().toString()];
             }
           }
+          // Add the current commit to the mainLine.
           mainLine.push(new CommitWrapper(0, i, vectorGitCommit[i], parentIds));
 
           progressBarManager.increasePercentage((1 / vectorGitCommit.length) * (0.99 - 0.05) * 100);
         }
       });
 
+      // Gather the child commits after running through the commit graph once in order
+      // to actually have populated entries.
       for (let i = 0; i < mainLine.length; i++) {
         if (mainLine[i].commit.id().toString() in childrenIds) {
           mainLine[i].childCommitIds = childrenIds[mainLine[i].commit.id().toString()];
@@ -302,26 +308,6 @@ module.exports = class GitManager {
       }
     }
     return mainLine;
-  }
-
-  /**
-   * Checks if the commit is contained in the commit line.
-   * @param {Commit} commit
-   * @param {Array<CommitWrapper>} line
-   * @return {boolean}
-   */
-  containsCommit(commit, line) {
-    return line.filter((e) => e.commit.id().toString() === commit.id().toString()).length > 0;
-  }
-
-  /**
-   * Gets the index of the commit from the commit line.
-   * @param {Commit} commit
-   * @param {Array<CommitWrapper>} line
-   * @return {number}
-   */
-  lineIndexOf(commit, line) {
-    return line.findIndex((e) => e.commit.id().toString() === commit.id().toString());
   }
 
   /**

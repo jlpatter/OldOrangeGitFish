@@ -74,6 +74,8 @@ module.exports = class SVGRow {
    */
   draw($commitTableSVG, parentSVGRows, childSVGRows, mainTable) {
     const self = this;
+
+    // Set the current node position as occupied (or find a position that's unoccupied and occupy it).
     if (!(self.y in mainTable)) {
       mainTable[self.y] = {};
       mainTable[self.y][self.x] = true;
@@ -89,6 +91,8 @@ module.exports = class SVGRow {
         }
       }
     }
+
+    // Set the space of the line from the current node to its parents as occupied.
     const pixelX = self.x * 20 + 20;
     const pixelY = self.y * 30 + 20;
     const color = self.getColor(self.x);
@@ -106,6 +110,7 @@ module.exports = class SVGRow {
       }
     }
 
+    // Draw the lines from the current node to its children.
     if (childSVGRows.length > 0) {
       for (let i = 0; i < childSVGRows.length; i++) {
         const childPixelX = childSVGRows[i].x * 20 + 20;
@@ -118,9 +123,11 @@ module.exports = class SVGRow {
       }
     }
 
+    // Now draw the node.
     const svgCircle = self.makeSVG('circle', {'cx': pixelX, 'cy': pixelY, 'r': 10, 'stroke': color, 'stroke-width': 1, 'fill': color});
     $commitTableSVG.append(svgCircle);
 
+    // Draw the branch text.
     let currentX = pixelX + 15;
     self.entry[0].forEach(function(branch) {
       const branchText = '(' + branch + ') ';
@@ -130,6 +137,7 @@ module.exports = class SVGRow {
       currentX += svgTextElem.getBBox().width + 5;
     });
 
+    // Draw the summary text.
     const entryElem = self.makeSVG('text', {x: currentX, y: pixelY + 6, fill: 'white'});
     entryElem.textContent = self.entry[1][1];
     $commitTableSVG.append(entryElem);
