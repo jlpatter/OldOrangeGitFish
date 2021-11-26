@@ -4,14 +4,17 @@
 module.exports = class CommitWrapper {
   /**
    * Constructs an object with an indent and a commit.
-   * @param {number} indent
+   * @param {number} x
+   * @param {number} y
    * @param {Commit} commit
-   * @param {Array<Commit>} parentCommits Should only be of length 1 or 2.
+   * @param {Array<string>} parentCommitIds Should only be of length 1 or 2.
    */
-  constructor(indent, commit, parentCommits) {
-    this.indent = indent;
+  constructor(x, y, commit, parentCommitIds) {
+    this.x = x;
+    this.y = y;
     this.commit = commit;
-    this.parentCommits = parentCommits;
+    this.parentCommitIds = parentCommitIds;
+    this.childCommitIds = [];
   }
 
   /**
@@ -19,14 +22,6 @@ module.exports = class CommitWrapper {
    * @return {Array}
    */
   getParseableFormat() {
-    if (this.parentCommits.length > 0) {
-      const parseableParentCommits = [];
-      for (let i = 0; i < this.parentCommits.length; i++) {
-        parseableParentCommits.push(this.parentCommits[i].id().toString());
-      }
-      return [this.indent, this.commit.summary(), this.commit.id().toString(), parseableParentCommits];
-    } else {
-      return [this.indent, this.commit.summary(), this.commit.id().toString(), []];
-    }
+    return [[this.x, this.y], this.commit.summary(), this.commit.id().toString(), this.parentCommitIds, this.childCommitIds];
   }
 };

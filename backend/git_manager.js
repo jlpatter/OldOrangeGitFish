@@ -205,7 +205,7 @@ module.exports = class GitManager {
         commitBranchDict = await self.buildBranchCommitsAndCommitBranchDict(gitReferences, branchCommits);
         progressBarManager.increasePercentage(5);
       });
-      const mainLine = await self.getAllCommitLines(progressBarManager, branchCommits);
+      const mainLine = await self.getAllCommitLines(progressBarManager, branchCommits, commitBranchDict);
       progressBarManager.setPercentage(99);
       const printableResults = self.getPrintableResults(mainLine, commitBranchDict);
       progressBarManager.increasePercentage(1);
@@ -264,156 +264,44 @@ module.exports = class GitManager {
    * Uses the branchCommits to get the commit 'lines', which are lines of commits.
    * @param {ProgressBarManager} progressBarManager
    * @param {Array<Commit>} branchCommits
+   * @param {Object} commitBranchDict
    * @return {Promise<*[]>}
    */
-  async getAllCommitLines(progressBarManager, branchCommits) {
+  async getAllCommitLines(progressBarManager, branchCommits, commitBranchDict) {
     const self = this;
-    let mainLine = [];
+    const mainLine = [];
     if (branchCommits.length > 0) {
-      const mergeCommits = [];
-
       // Build the mainline
-      let counter = 0;
-      let isTmpMainLineFinished = false;
-      let tmpMainLineChild = branchCommits[0];
-      while (!isTmpMainLineFinished) {
-        if (counter < 2000) {
-          await tmpMainLineChild.getParents(10).then(function(parents) {
-            if (parents.length > 2) {
-              throw new RangeError('I honestly didn\'t know a commit could have more than 2 parents...');
-            } else if (parents.length === 0) {
-              isTmpMainLineFinished = true;
-            } else {
-              if (parents.length === 2) {
-                mergeCommits.push([tmpMainLineChild, parents[1]]);
-              }
-              mainLine.push(new CommitWrapper(0, tmpMainLineChild, parents));
-              tmpMainLineChild = parents[0];
-            }
-          });
-        } else {
-          isTmpMainLineFinished = true;
-        }
-        counter++;
+      const revwalk = Git.Revwalk.create(self.repo);
+      for (let i = 0; i < branchCommits.length; i++) {
+        revwalk.push(branchCommits[i].id());
       }
-      mainLine.push(new CommitWrapper(0, tmpMainLineChild, []));
-
-      progressBarManager.increasePercentage(5);
-
-      // Only show the first 2000 commits.
-      const lastCommit = mainLine[mainLine.length - 1].commit;
-
-      progressBarManager.increasePercentage(5);
-
-      for (let i = 1; i < branchCommits.length; i++) {
-        if (!self.containsCommit(branchCommits[i], mainLine) && branchCommits[i].date() > lastCommit.date()) {
-          // Build shortlines from branchCommits
-          const shortLine = [new CommitWrapper(-1, branchCommits[i], [])];
-          let child = branchCommits[i];
-          let isFinished = false;
-          let mainLineCommit = null;
-          while (!isFinished) {
-            await child.getParents(10).then(function(parents) {
-              if (parents.length === 2) {
-                mergeCommits.push([child, parents[1]]);
-              }
-              if (parents.length > 2) {
-                throw new RangeError('I honestly didn\'t know a commit could have more than 2 parents...');
-              } else if (parents.length === 0 || parents[0].date() < lastCommit.date()) {
-                isFinished = true;
-              } else if (self.containsCommit(parents[0], mainLine)) {
-                isFinished = true;
-                mainLineCommit = parents[0];
-              } else {
-                shortLine.push(new CommitWrapper(-1, parents[0], []));
-                child = parents[0];
-              }
-            });
-          }
-
-          // Set indents and parent commits of shortLine commits.
-          for (let i = 0; i < shortLine.length; i++) {
-            if (mainLineCommit !== null) {
-              shortLine[i].indent = mainLine[self.lineIndexOf(mainLineCommit, mainLine)].indent + 1;
+      revwalk.sorting(Git.Revwalk.SORT.TOPOLOGICAL, Git.Revwalk.SORT.TIME);
+      const childrenIds = {};
+      await revwalk.commitWalk(2000).then(async function(vectorGitCommit) {
+        for (let i = 0; i < vectorGitCommit.length; i++) {
+          const parentIds = [];
+          for (let j = 0; j < vectorGitCommit[i].parentcount(); j++) {
+            parentIds.push(vectorGitCommit[i].parentId(j).toString());
+            if (vectorGitCommit[i].parentId(j).toString() in childrenIds) {
+              childrenIds[vectorGitCommit[i].parentId(j).toString()].push(vectorGitCommit[i].id().toString());
             } else {
-              shortLine[i].indent = 1;
+              childrenIds[vectorGitCommit[i].parentId(j).toString()] = [vectorGitCommit[i].id().toString()];
             }
-            await shortLine[i].commit.getParents(10).then(function(parents) {
-              if (parents.length > 2) {
-                throw new RangeError('I honestly didn\'t know a commit could have more than 2 parents...');
-              } else if (parents.length === 1 || parents.length === 2) {
-                shortLine[i].parentCommits = parents;
-              }
-            });
           }
+          mainLine.push(new CommitWrapper(0, i, vectorGitCommit[i], parentIds));
 
-          if (mainLineCommit !== null) {
-            // Inserts shortLine into mainLine at self.lineIndexOf(mainLineCommit, mainLine)
-            mainLine.splice(self.lineIndexOf(mainLineCommit, mainLine), 0, ...shortLine);
-          } else {
-            mainLine = mainLine.concat(shortLine);
-          }
+          progressBarManager.increasePercentage((1 / vectorGitCommit.length) * (0.99 - 0.05) * 100);
         }
-        progressBarManager.increasePercentage((1 / branchCommits.length) * (0.5 - 0.15) * 100);
-      }
+      });
 
-      // Add mergeLines to the mainLine
-      for (let i = 0; i < mergeCommits.length; i++) {
-        await self.getMergeCommitLine(mergeCommits[i][0], mergeCommits[i][1], mainLine, lastCommit);
-        progressBarManager.increasePercentage((1 / mergeCommits.length) * (0.99 - 0.5) * 100);
+      for (let i = 0; i < mainLine.length; i++) {
+        if (mainLine[i].commit.id().toString() in childrenIds) {
+          mainLine[i].childCommitIds = childrenIds[mainLine[i].commit.id().toString()];
+        }
       }
     }
     return mainLine;
-  }
-
-  /**
-   * Gets the mergecommitline.
-   * @param {Commit} mergeCommit
-   * @param {Commit} mergeCommitParent
-   * @param {Array<CommitWrapper>} parentLine
-   * @param {Commit} lastCommit
-   * @return {Promise<Array<CommitWrapper>>}
-   */
-  async getMergeCommitLine(mergeCommit, mergeCommitParent, parentLine, lastCommit) {
-    const self = this;
-    const indent = parentLine[self.lineIndexOf(mergeCommit, parentLine)].indent + 1;
-    const mergeCommitParents = [];
-    const mergeLine = [];
-    let isFinished = false;
-    let child = mergeCommitParent;
-
-    mergeLine.push(new CommitWrapper(indent, child, []));
-    while (!isFinished) {
-      await child.getParents(10).then(async function(parents) {
-        if (parents.length === 2) {
-          mergeCommitParents.push([child, parents[1]]);
-        }
-        if (parents.length > 2) {
-          throw new RangeError('I honestly didn\'t know a commit could have more than 2 parents...');
-        } else if (parents.length === 0 || self.containsCommit(parents[0], parentLine) || parents[0].date() < lastCommit.date()) {
-          isFinished = true;
-        } else {
-          mergeLine.push(new CommitWrapper(indent, parents[0], []));
-          child = parents[0];
-        }
-      });
-    }
-    for (let i = 0; i < mergeLine.length; i++) {
-      await mergeLine[i].commit.getParents(10).then(function(parents) {
-        if (parents.length > 2) {
-          throw new RangeError('I honestly didn\'t know a commit could have more than 2 parents...');
-        } else if (parents.length === 1 || parents.length === 2) {
-          mergeLine[i].parentCommits = parents;
-        }
-      });
-    }
-
-    parentLine.splice(self.lineIndexOf(mergeCommit, parentLine) + 1, 0, ...mergeLine);
-
-    for (let i = 0; i < mergeCommitParents; i++) {
-      await self.getMergeCommitLine(mergeCommitParents[i][0], mergeCommitParents[i][1], parentLine, lastCommit);
-    }
-    return mergeLine;
   }
 
   /**
@@ -433,12 +321,7 @@ module.exports = class GitManager {
    * @return {number}
    */
   lineIndexOf(commit, line) {
-    for (let i = 0; i < line.length; i++) {
-      if (line[i].commit.id().toString() === commit.id().toString()) {
-        return i;
-      }
-    }
-    return -1;
+    return line.findIndex((e) => e.commit.id().toString() === commit.id().toString());
   }
 
   /**
