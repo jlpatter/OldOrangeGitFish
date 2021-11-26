@@ -279,7 +279,7 @@ module.exports = class GitManager {
       revwalk.sorting(Git.Revwalk.SORT.TOPOLOGICAL, Git.Revwalk.SORT.TIME);
       const childrenIds = {};
       // Only walk 2000 commits.
-      await revwalk.commitWalk(2000).then(async function(vectorGitCommit) {
+      await revwalk.commitWalk(2000).then(function(vectorGitCommit) {
         for (let i = 0; i < vectorGitCommit.length; i++) {
           const parentIds = [];
           for (let j = 0; j < vectorGitCommit[i].parentcount(); j++) {
