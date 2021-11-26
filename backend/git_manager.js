@@ -257,12 +257,17 @@ module.exports = class GitManager {
     const self = this;
     const mainLine = [];
     if (branchCommits.length > 0) {
+      // Sort the branchCommits by date descending.
+      branchCommits.sort(function(a, b) {
+        return b.date() - a.date();
+      });
+
       // Start a walk from the branchCommits.
       const revwalk = Git.Revwalk.create(self.repo);
       for (let i = 0; i < branchCommits.length; i++) {
         revwalk.push(branchCommits[i].id());
       }
-      revwalk.sorting(Git.Revwalk.SORT.TOPOLOGICAL, Git.Revwalk.SORT.TIME);
+      revwalk.sorting(Git.Revwalk.SORT.TOPOLOGICAL);
       const childrenIds = {};
       // Only walk 2000 commits.
       await revwalk.commitWalk(2000).then(function(vectorGitCommit) {
