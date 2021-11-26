@@ -1,20 +1,20 @@
 const ipcRenderer = require('electron').ipcRenderer;
 
 /**
- * The JavaScript class for the branch name prompt.
+ * The main script for the Signature Prompt.
  */
-class BranchPrompt {
+class SignaturePrompt {
   /**
-   * Sets up the confirm and cancel buttons.
+   * Sets up the confirm button.
    */
   run() {
     window.addEventListener('DOMContentLoaded', () => {
       $('#confirmBtn').click(function() {
-        ipcRenderer.send('git-branch-message', $('#branchTxt').val());
+        ipcRenderer.send('signature-message', [$('#fullNameTxt').val(), $('#emailTxt').val()]);
         window.close();
       });
     });
   }
 }
 
-new BranchPrompt().run();
+new SignaturePrompt().run();

@@ -8,15 +8,18 @@
     <script>let $ = require('jquery');</script>
     <script>require('popper.js');</script>
     <script>require('bootstrap');</script>
-    <script type="text/javascript" src="../js/branch_prompt.js"></script>
-    <title>Please Enter a Name</title>
+    <script type="text/javascript" src="../js/signature_prompt.js"></script>
+    <title>Signature</title>
 </head>
 <body class="bg-dark text-white">
-    <div class="container">
-        <label>
-            Please enter a name for your branch: <input id="branchTxt" type="text" />
-        </label>
-        <button id="confirmBtn" type="button" class="btn btn-success btn-sm"><i class="bi bi-check-circle"></i> Confirm</button>
-    </div>
+<div class="container">
+    <label>
+        Full Name: <input id="fullNameTxt" type="text" />
+    </label>
+    <label>
+        Email: <input id="emailTxt" type="text" />
+    </label>
+    <button id="confirmBtn" type="button" class="btn btn-success btn-sm"><i class="bi bi-check-circle"></i> Confirm</button>
+</div>
 </body>
 </html>

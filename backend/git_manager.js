@@ -172,12 +172,41 @@ module.exports = class GitManager {
 
   /**
    * Commmits staged changes to the branch.
+   * @param {Electron.CrossProcessExports.BrowserWindow} win
    * @param {string} message The message to use for the commit.
    * @return {Promise<void>}
    */
-  async gitCommit(message) {
+  async gitCommit(win, message) {
     const self = this;
-    const author = Git.Signature.now('Joshua Patterson', 'jleegippies@gmail.com');
+    let fullname = '';
+    let email = '';
+    await self.repo.config().then(async function(config) {
+      await config.getStringBuf('user.name').then(function(buf) {
+        fullname = buf.toString();
+      }).catch(function(error) {
+        fullname = '';
+      });
+      await config.getStringBuf('user.email').then(function(buf) {
+        email = buf.toString();
+      }).catch(function(error) {
+        email = '';
+      });
+    });
+    if (fullname === '' || email === '') {
+      await new Promise(function(resolve, reject) {
+        win.webContents.send('git-fetch-signature', []);
+        ipcMain.on('signature-message', (event, arg) => {
+          fullname = arg[0];
+          email = arg[1];
+          resolve();
+        });
+      });
+      await self.repo.config().then(async function(config) {
+        await config.setString('user.name', fullname);
+        await config.setString('user.email', email);
+      });
+    }
+    const author = Git.Signature.now(fullname, email);
     const index = await self.repo.refreshIndex();
     const changes = await index.writeTree();
     const head = await Git.Reference.nameToId(self.repo, 'HEAD');

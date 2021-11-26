@@ -96,6 +96,31 @@ class Main {
   }
 
   /**
+   * Opens the signature window and waits until it's closed
+   * @return {Promise<void>}
+   */
+  async openSignatureWindow() {
+    const win = new BrowserWindow({
+      width: 400,
+      height: 300,
+      webPreferences: {
+        nodeIntegration: true,
+        contextIsolation: false,
+      },
+    });
+
+    remoteMain.enable(win.webContents);
+
+    await new Promise(function(resolve, reject) {
+      win.loadFile('./frontend/views/signature_prompt.html');
+
+      win.on('close', function() {
+        resolve();
+      });
+    });
+  }
+
+  /**
    * Opens the create branch window asking for a branch name
    * then waits until it's closed
    * @return {Promise<void>}
@@ -279,6 +304,10 @@ ipcRenderer.on('git-diff-message', (event, arg) => {
 
 ipcRenderer.on('git-fetch-creds', async (event, arg) => {
   await main.openLoginWindow();
+});
+
+ipcRenderer.on('git-fetch-signature', async (event, arg) => {
+  await main.openSignatureWindow();
 });
 
 ipcRenderer.on('progress-bar-value', (event, arg) => {

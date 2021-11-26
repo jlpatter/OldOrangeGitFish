@@ -83,7 +83,7 @@ function createWindow() {
   });
 
   ipcMain.on('git-commit-message', (event, arg) => {
-    gitManager.gitCommit(arg).then(function() {
+    gitManager.gitCommit(win, arg).then(function() {
       win.webContents.send('refresh-message', []);
     });
   });
