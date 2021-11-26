@@ -92,8 +92,6 @@ module.exports = class SVGRow {
     const pixelX = self.x * 20 + 20;
     const pixelY = self.y * 30 + 20;
     const color = self.getColor(self.x);
-    const svgCircle = self.makeSVG('circle', {'cx': pixelX, 'cy': pixelY, 'r': 10, 'stroke': color, 'stroke-width': 1, 'fill': color});
-    $commitTableSVG.append(svgCircle);
     if (parentSVGRows.length > 0) {
       for (let i = 0; i < parentSVGRows.length; i++) {
         // ParentSVGRows are lower on the graph (with a higher y value).
@@ -116,6 +114,9 @@ module.exports = class SVGRow {
         $commitTableSVG.append(svgLine);
       }
     }
+
+    const svgCircle = self.makeSVG('circle', {'cx': pixelX, 'cy': pixelY, 'r': 10, 'stroke': color, 'stroke-width': 1, 'fill': color});
+    $commitTableSVG.append(svgCircle);
 
     let currentX = pixelX + 15;
     self.entry[0].forEach(function(branch) {
