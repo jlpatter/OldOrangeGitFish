@@ -39,17 +39,8 @@
       },
       "makers": [
         {
-          "name": "@electron-forge/maker-squirrel",
-          "config": {
-            "name": "egitgui"
-          }
-        },
-        {
           "name": "@electron-forge/maker-zip",
-          "platforms": [
-            "darwin",
-            "linux"
-          ]
+          "config": {}
         },
         {
           "name": "@electron-forge/maker-deb",
