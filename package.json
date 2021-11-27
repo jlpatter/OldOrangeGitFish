@@ -54,7 +54,8 @@
       "oneClick": "false"
     },
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "./fish.ico"
     }
   }
 }
