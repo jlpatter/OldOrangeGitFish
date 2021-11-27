@@ -20,7 +20,7 @@ Features so far:
 * Create new branches
 
 ### Development
-Setup environment: run `npm install`, then run `./node_modules/.bin/electron-rebuild`. If either step throws errors,
+Setup environment: run `npm install`, then run `npm rebuild` (which takes a really long time as it's compiling nodegit). If either step throws errors,
 be sure to install the missing dependencies or log an issue. You may want to install `nvm`
 and run `nvm use` in the project directory in order to use the correct version of node.
 
