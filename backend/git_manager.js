@@ -1,6 +1,7 @@
 const {ipcMain} = require('electron');
 const Git = require('nodegit');
 const path = require('path');
+const keytar = require('keytar');
 const CommitWrapper = require('./commit_wrapper');
 
 /**
@@ -14,11 +15,6 @@ module.exports = class GitManager {
   constructor() {
     this.repo = null;
     this.filePath = '';
-    this.username = '';
-    this.password = '';
-    this.privateKeyPath = '';
-    this.publicKeyPath = '';
-    this.passphrase = '';
     this.emptyTree = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
   }
 
@@ -473,35 +469,66 @@ module.exports = class GitManager {
   async getCredential(win) {
     const self = this;
 
-    if ((self.username === '' || self.password === '') && (self.publicKeyPath === '' || self.privateKeyPath === '')) {
+    const httpsCredentials = await keytar.findCredentials('egitgui');
+    const sshCredentials = await keytar.findCredentials('egitguissh');
+
+    let username = '';
+    let password = '';
+    let publicKeyPath = '';
+    let privateKeyPath = '';
+    let passphrase = '';
+
+    if (httpsCredentials.length === 0 && sshCredentials.length === 0) {
       await new Promise(function(resolve, reject) {
         win.webContents.send('git-fetch-creds', []);
-        ipcMain.on('login-message', (event, arg) => {
-          self.username = arg[0];
-          self.password = arg[1];
-          self.publicKeyPath = '';
-          self.privateKeyPath = '';
-          self.passphrase = '';
+        ipcMain.on('login-message', async (event, arg) => {
+          username = arg[0];
+          password = arg[1];
+          await keytar.setPassword('egitgui', username, password);
           resolve();
         });
 
-        ipcMain.on('ssh-connect-message', (event, arg) => {
-          self.username = '';
-          self.password = '';
-          self.publicKeyPath = arg[0];
-          self.privateKeyPath = arg[1];
-          self.passphrase = arg[2];
+        ipcMain.on('ssh-connect-message', async (event, arg) => {
+          publicKeyPath = arg[0];
+          privateKeyPath = arg[1];
+          passphrase = arg[2];
+
+          await keytar.setPassword('egitguissh', 'git', passphrase);
+          await self.repo.config().then(async function(config) {
+            await config.setString('egitgui.publickey', publicKeyPath);
+            await config.setString('egitgui.privatekey', privateKeyPath);
+          });
+
           resolve();
         });
       });
+    } else if (httpsCredentials.length > 0) {
+      username = httpsCredentials[0].account;
+      password = httpsCredentials[0].password;
+    } else if (sshCredentials.length > 0) {
+      await self.repo.config().then(async function(config) {
+        await config.getStringBuf('egitgui.publickey').then(function(buf) {
+          publicKeyPath = buf.toString();
+        }).catch(function(error) {
+          publicKeyPath = '';
+        });
+        await config.getStringBuf('egitgui.privatekey').then(function(buf) {
+          privateKeyPath = buf.toString();
+        }).catch(function(error) {
+          privateKeyPath = '';
+        });
+      });
+      passphrase = sshCredentials[0].password;
+    } else {
+      throw new Error('It shouldn\'t be possible to see this message.');
     }
 
-    if (self.username !== '' && self.password !== '') {
-      return Git.Credential.userpassPlaintextNew(self.username, self.password);
-    } else if (self.publicKeyPath !== '' && self.privateKeyPath !== '') {
-      return Git.Credential.sshKeyNew('git', self.publicKeyPath, self.privateKeyPath, self.passphrase);
+    if (username !== '' && password !== '') {
+      return Git.Credential.userpassPlaintextNew(username, password);
+    } else if (publicKeyPath !== '' && privateKeyPath !== '' && passphrase !== '') {
+      return Git.Credential.sshKeyNew('git', publicKeyPath, privateKeyPath, passphrase);
     } else {
-      throw new Error('No Git credentials were entered!');
+      throw new Error('No Git credentials were found or entered!');
     }
   }
 };

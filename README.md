@@ -19,6 +19,14 @@ Features so far:
 * Checkout branches
 * Create new branches
 
+### Running on Linux
+
+You will need to run the following commands in order to properly save credentials.
+
+* Debian/Ubuntu: `sudo apt install libsecret-1-dev`
+* Red Hat-based: `sudo yum install libsecret-devel`
+* Arch-based: `sudo pacman -S libsecret`
+
 ### Development
 Setup environment: run `npm install`, then run `npm rebuild` (which takes a really long time as it's compiling nodegit). If either step throws errors,
 be sure to install the missing dependencies or log an issue. You may want to install `nvm`
