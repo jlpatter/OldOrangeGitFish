@@ -209,9 +209,17 @@ module.exports = class GitManager {
     const author = Git.Signature.now(fullname, email);
     const index = await self.repo.refreshIndex();
     const changes = await index.writeTree();
-    const head = await Git.Reference.nameToId(self.repo, 'HEAD');
-    const parent = await self.repo.getCommit(head);
-    await self.repo.createCommit('HEAD', author, author, message, changes, [parent]);
+    let head = null;
+    await Git.Reference.nameToId(self.repo, 'HEAD').then(function(oid) {
+      head = oid;
+    }).catch(function(error) {
+      head = null;
+    });
+    const parents = [];
+    if (head !== null) {
+      parents.push(await self.repo.getCommit(head));
+    }
+    await self.repo.createCommit('HEAD', author, author, message, changes, parents);
   }
 
   /**
