@@ -1,5 +1,6 @@
 const {ipcMain} = require('electron');
 const Git = require('nodegit');
+const path = require('path');
 const CommitWrapper = require('./commit_wrapper');
 
 /**
@@ -70,7 +71,10 @@ module.exports = class GitManager {
       },
     };
     self.filePath = urlAndPath[1];
-    await Git.Clone.clone(urlAndPath[0], urlAndPath[1], cloneOptions).then(function(repo) {
+    // Extract the project name from the url
+    const projectName = urlAndPath[0].slice(urlAndPath[0].lastIndexOf('/') + 1, -4);
+    // Use the project name as a name for the folder containing the project
+    await Git.Clone.clone(urlAndPath[0], urlAndPath[1] + path.sep + projectName, cloneOptions).then(function(repo) {
       self.repo = repo;
     });
   }
