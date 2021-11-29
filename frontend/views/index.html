@@ -91,10 +91,14 @@
                     </tr>
                     <tr>
                         <td>
-                            <label class="text-white">
-                                Message: <input id="messageTxt" type="text" />
-                            </label>
-                            <button id="commitBtn" type="button" class="btn btn-primary btn-sm"><i class="bi bi-check-circle"></i> Commit</button>
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Message" id="messageTxt">
+                                <div class="input-group-btn">
+                                    <button id="commitBtn" class="btn btn-primary" type="button">
+                                        <i class="bi bi-check-circle"></i> Commit
+                                    </button>
+                                </div>
+                            </div>
                         </td>
                     </tr>
                     </tbody>

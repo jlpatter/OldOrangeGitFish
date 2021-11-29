@@ -498,7 +498,20 @@ module.exports = class GitManager {
     let privateKeyPath = '';
     let passphrase = '';
 
-    if (httpsCredentials.length === 0 && sshCredentials.length === 0) {
+    await self.repo.config().then(async function(config) {
+      await config.getStringBuf('egitgui.publickey').then(function(buf) {
+        publicKeyPath = buf.toString();
+      }).catch(function(error) {
+        publicKeyPath = '';
+      });
+      await config.getStringBuf('egitgui.privatekey').then(function(buf) {
+        privateKeyPath = buf.toString();
+      }).catch(function(error) {
+        privateKeyPath = '';
+      });
+    });
+
+    if (httpsCredentials.length === 0 && (sshCredentials.length === 0 || publicKeyPath === '' || privateKeyPath === '')) {
       await new Promise(function(resolve, reject) {
         win.webContents.send('git-fetch-creds', []);
         ipcMain.on('login-message', async (event, arg) => {
@@ -525,19 +538,7 @@ module.exports = class GitManager {
     } else if (httpsCredentials.length > 0) {
       username = httpsCredentials[0].account;
       password = httpsCredentials[0].password;
-    } else if (sshCredentials.length > 0) {
-      await self.repo.config().then(async function(config) {
-        await config.getStringBuf('egitgui.publickey').then(function(buf) {
-          publicKeyPath = buf.toString();
-        }).catch(function(error) {
-          publicKeyPath = '';
-        });
-        await config.getStringBuf('egitgui.privatekey').then(function(buf) {
-          privateKeyPath = buf.toString();
-        }).catch(function(error) {
-          privateKeyPath = '';
-        });
-      });
+    } else if (sshCredentials.length > 0 && publicKeyPath !== '' && privateKeyPath !== '') {
       passphrase = sshCredentials[0].password;
     } else {
       throw new Error('It shouldn\'t be possible to see this message.');
