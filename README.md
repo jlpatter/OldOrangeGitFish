@@ -1,8 +1,8 @@
-# eGitGUI
+# OrangeGitFish
 
 ![There's supposed to be an image here...](./fish.png)
 
-This is my electron Git GUI application! I aim to provide the majority of features that git provides but within a GUI!
+This is my electron Git GUI application, OrangeGitFish! I aim to provide the majority of features that git provides but within a GUI!
 
 Features so far:
 
@@ -46,6 +46,6 @@ Perform the following steps in order:
 * Run the following: `choco install openssl` (yes, even though it gets built during `npm install`)
 * Run the following: `choco install nasm` and add the directory containing the NASM executable to your PATH variable (yes, even though it's bundled with nodejs)
 * Install [Strawberry Perl](https://strawberryperl.com/)
-* Clone egitgui somewhere
-* In the egitgui directory, Run `npm install`
+* Clone OrangeGitFish somewhere
+* In the OrangeGitFish directory, Run `npm install`
 * Run `npm run start`

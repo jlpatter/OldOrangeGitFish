@@ -1,5 +1,5 @@
 {
-  "name": "egitgui",
+  "name": "orangegitfish",
   "version": "0.1.4",
   "description": "A git gui application",
   "main": "backend/index.js",
@@ -27,7 +27,7 @@
     "popper.js": "^1.16.1"
   },
   "build": {
-    "appId": "com.jlpatter.egitgui",
+    "appId": "com.jlpatter.orangegitfish",
     "compression": "normal",
     "asar": true,
     "extends": null,

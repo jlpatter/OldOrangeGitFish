@@ -489,8 +489,8 @@ module.exports = class GitManager {
   async getCredential(win) {
     const self = this;
 
-    const httpsCredentials = await keytar.findCredentials('egitgui');
-    const sshCredentials = await keytar.findCredentials('egitguissh');
+    const httpsCredentials = await keytar.findCredentials('orangegitfish');
+    const sshCredentials = await keytar.findCredentials('orangegitfishssh');
 
     let username = '';
     let password = '';
@@ -499,12 +499,12 @@ module.exports = class GitManager {
     let passphrase = '';
 
     await self.repo.config().then(async function(config) {
-      await config.getStringBuf('egitgui.publickey').then(function(buf) {
+      await config.getStringBuf('orangegitfish.publickey').then(function(buf) {
         publicKeyPath = buf.toString();
       }).catch(function(error) {
         publicKeyPath = '';
       });
-      await config.getStringBuf('egitgui.privatekey').then(function(buf) {
+      await config.getStringBuf('orangegitfish.privatekey').then(function(buf) {
         privateKeyPath = buf.toString();
       }).catch(function(error) {
         privateKeyPath = '';
@@ -517,7 +517,7 @@ module.exports = class GitManager {
         ipcMain.on('login-message', async (event, arg) => {
           username = arg[0];
           password = arg[1];
-          await keytar.setPassword('egitgui', username, password);
+          await keytar.setPassword('orangegitfish', username, password);
           resolve();
         });
 
@@ -526,10 +526,10 @@ module.exports = class GitManager {
           privateKeyPath = arg[1];
           passphrase = arg[2];
 
-          await keytar.setPassword('egitguissh', 'git', passphrase);
+          await keytar.setPassword('orangegitfishssh', 'git', passphrase);
           await self.repo.config().then(async function(config) {
-            await config.setString('egitgui.publickey', publicKeyPath);
-            await config.setString('egitgui.privatekey', privateKeyPath);
+            await config.setString('orangegitfish.publickey', publicKeyPath);
+            await config.setString('orangegitfish.privatekey', privateKeyPath);
           });
 
           resolve();
