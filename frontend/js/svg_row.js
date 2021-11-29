@@ -152,6 +152,10 @@ module.exports = class SVGRow {
     entryElem.oncontextmenu = contextFunction;
     $commitTableSVG.append(entryElem);
     self.width = currentX + entryElem.getBBox().width;
+
+    const rectElem = self.makeSVG('rect', {x: pixelX, y: pixelY - 12, width: self.width, height: 24, style: 'fill:white;fill-opacity:0.1;'});
+    rectElem.oncontextmenu = contextFunction;
+    $commitTableSVG.append(rectElem);
   }
 
   /**

@@ -27,6 +27,14 @@
     border-radius: 0;
 }
 
+svg rect {
+    opacity: 0;
+}
+
+svg rect:hover {
+    opacity: 0.75;
+}
+
 ::-webkit-scrollbar {
     width: 12px;
 }
