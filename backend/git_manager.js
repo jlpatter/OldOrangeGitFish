@@ -470,6 +470,18 @@ module.exports = class GitManager {
   }
 
   /**
+   * Resets the current branch to thet commitSha by the specified type.
+   * @param {string} commitSha
+   * @param {number} resetType
+   */
+  async gitReset(commitSha, resetType) {
+    const self = this;
+    await Git.Commit.lookup(self.repo, commitSha).then(async function(commit) {
+      await Git.Reset.reset(self.repo, commit, resetType);
+    });
+  }
+
+  /**
    * Gets the credentials for remote operations.
    * @param {Electron.CrossProcessExports.BrowserWindow} win
    * @return {Promise<Git.Credential>}

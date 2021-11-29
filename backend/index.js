@@ -1,6 +1,7 @@
 const {app, BrowserWindow, ipcMain} = require('electron');
 const remoteMain = require('@electron/remote/main');
 const path = require('path');
+const Git = require('nodegit');
 const GitManager = require('./git_manager');
 const ProgressBarManager = require('./progress_bar_manager');
 
@@ -120,6 +121,24 @@ function createWindow() {
 
   ipcMain.on('git-branch-message', (event, arg) => {
     gitManager.gitBranch(arg).then(function() {
+      win.webContents.send('refresh-message', []);
+    });
+  });
+
+  ipcMain.on('git-reset-soft-message', (event, arg) => {
+    gitManager.gitReset(arg, Git.Reset.TYPE.SOFT).then(function() {
+      win.webContents.send('refresh-message', []);
+    });
+  });
+
+  ipcMain.on('git-reset-mixed-message', (event, arg) => {
+    gitManager.gitReset(arg, Git.Reset.TYPE.MIXED).then(function() {
+      win.webContents.send('refresh-message', []);
+    });
+  });
+
+  ipcMain.on('git-reset-hard-message', (event, arg) => {
+    gitManager.gitReset(arg, Git.Reset.TYPE.HARD).then(function() {
       win.webContents.send('refresh-message', []);
     });
   });

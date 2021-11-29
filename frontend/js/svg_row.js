@@ -1,3 +1,5 @@
+const ipcRenderer = require('electron').ipcRenderer;
+
 /**
  * A row in the svg table.
  */
@@ -9,7 +11,7 @@ module.exports = class SVGRow {
    * @param {Array<string>} childrenShas
    * @param {int} x
    * @param {int} y
-   * @param {Array} entry
+   * @param {Array<Array<string>|string>} entry
    */
   constructor(sha, parentShas, childrenShas, x, y, entry) {
     this.sha = sha;
@@ -134,10 +136,12 @@ module.exports = class SVGRow {
       largestXValue = Math.max(largestXValue, Number(occupiedRowNums[i]));
     }
     let currentX = (largestXValue + 1) * 20 + 20;
+    const contextFunction = self.getContextFunction();
     self.entry[0].forEach(function(branch) {
       const branchText = '(' + branch + ') ';
       const svgTextElem = self.makeSVG('text', {x: currentX, y: pixelY + 6, fill: color});
       svgTextElem.textContent = branchText;
+      svgTextElem.oncontextmenu = contextFunction;
       $commitTableSVG.append(svgTextElem);
       currentX += svgTextElem.getBBox().width + 5;
     });
@@ -145,6 +149,7 @@ module.exports = class SVGRow {
     // Draw the summary text.
     const entryElem = self.makeSVG('text', {x: currentX, y: pixelY + 6, fill: 'white'});
     entryElem.textContent = self.entry[1][1];
+    entryElem.oncontextmenu = contextFunction;
     $commitTableSVG.append(entryElem);
     self.width = currentX + entryElem.getBBox().width;
   }
@@ -180,5 +185,39 @@ module.exports = class SVGRow {
     } else {
       return '\#FF0D00';
     }
+  }
+
+  /**
+   * Gets the function to be called by oncontextmenu
+   * @return {(function(*): void)|*}
+   */
+  getContextFunction() {
+    const self = this;
+    return function(event) {
+      const $contextMenu = $('#contextMenu');
+      $contextMenu.empty();
+      $contextMenu.css('left', event.pageX + 'px');
+      $contextMenu.css('top', event.pageY + 'px');
+
+      const $softResetBtn = $('<button type="button" class="btn btn-secondary btn-sm square-border">Soft Reset to Here</button>');
+      $softResetBtn.click(function() {
+        ipcRenderer.send('git-reset-soft-message', self.sha);
+      });
+      $contextMenu.append($softResetBtn);
+
+      const $mixedResetBtn = $('<button type="button" class="btn btn-secondary btn-sm square-border">Mixed Reset to Here</button>');
+      $mixedResetBtn.click(function() {
+        ipcRenderer.send('git-reset-mixed-message', self.sha);
+      });
+      $contextMenu.append($mixedResetBtn);
+
+      const $hardResetBtn = $('<button type="button" class="btn btn-secondary btn-sm square-border">Hard Reset to Here</button>');
+      $hardResetBtn.click(function() {
+        ipcRenderer.send('git-reset-hard-message', self.sha);
+      });
+      $contextMenu.append($hardResetBtn);
+
+      $contextMenu.show();
+    };
   }
 };

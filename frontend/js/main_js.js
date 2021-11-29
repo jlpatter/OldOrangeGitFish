@@ -18,6 +18,12 @@ class Main {
     window.addEventListener('DOMContentLoaded', () => {
       self.svgManager = new SVGManager();
 
+      $('#contextMenu').hide();
+
+      $(window).click(function() {
+        $('#contextMenu').hide();
+      });
+
       $('#fetchBtn').click(function() {
         ipcRenderer.send('git-fetch-message', []);
       });
