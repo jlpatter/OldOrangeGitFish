@@ -28,13 +28,11 @@ You will need to run the following commands in order to properly save credential
 * Arch-based: `sudo pacman -S libsecret`
 
 ### Development
-Setup environment: run `npm install`, then run `npm rebuild` (which takes a really long time as it's compiling nodegit). If either step throws errors,
+Setup environment: run `npm install` (which takes a really long time as it's compiling nodegit). If that step throws any errors,
 be sure to install the missing dependencies or log an issue. You may want to install `nvm`
 and run `nvm use` in the project directory in order to use the correct version of node.
 
 #### Windows Development
-(I'm so sorry, prepare for pain)
-
 Perform the following steps in order:
 
 * Install Python2 and Python3
