@@ -1,6 +1,6 @@
 {
   "name": "orangegitfish",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "A git gui application",
   "main": "backend/index.js",
   "scripts": {
