@@ -505,7 +505,7 @@ module.exports = class GitManager {
           }
         }
 
-        // If there are no conflicts, create a merge commit and push.
+        // If there are no conflicts, create a merge commit.
         if (!hasConflicts) {
           const author = await self.getSignature(win);
           const index = await self.repo.refreshIndex();
@@ -517,9 +517,21 @@ module.exports = class GitManager {
           const message = 'Merge commit ' + commitSha.slice(0, 6) + ' into commit ' + head.id().toString().slice(0, 6);
           await self.repo.createCommit('HEAD', author, author, message, changes, [head, commit]);
         } else {
-          // TODO: Add behavior for when there are conflicts!
+          // Else alert the frontend that there's a merge conflict
+          win.webContents.send('git-merge-conflict-message', []);
         }
       });
+    });
+  }
+
+  /**
+   * Aborts a merge in progress
+   * @return {Promise<void>}
+   */
+  async gitAbortMerge() {
+    const self = this;
+    await self.repo.getHeadCommit().then(async function(commit) {
+      await Git.Reset.reset(self.repo, commit, Git.Reset.TYPE.HARD);
     });
   }
 

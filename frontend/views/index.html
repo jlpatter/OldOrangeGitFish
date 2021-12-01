@@ -91,12 +91,20 @@
                     </tr>
                     <tr>
                         <td>
-                            <div class="input-group">
+                            <div id="commitControls" class="input-group">
                                 <input type="text" class="form-control" placeholder="Message" id="messageTxt">
                                 <div class="input-group-btn">
                                     <button id="commitBtn" class="btn btn-primary" type="button">
                                         <i class="bi bi-check-circle"></i> Commit
                                     </button>
+                                </div>
+                            </div>
+                            <div id="mergeControls" class="input-group">
+                                <div class="input-group-btn">
+                                    <button id="abortMergeBtn" class="btn btn-danger btn-sm" type="button">Abort Merge</button>
+                                </div>
+                                <div class="input-group-btn">
+                                    <button id="continueMergeBtn" class="btn btn-success btn-sm" type="button">Continue Merge</button>
                                 </div>
                             </div>
                         </td>

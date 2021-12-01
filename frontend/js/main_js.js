@@ -19,6 +19,7 @@ class Main {
       self.svgManager = new SVGManager();
 
       $('#contextMenu').hide();
+      $('#mergeControls').hide();
 
       $(window).click(function() {
         $('#contextMenu').hide();
@@ -48,6 +49,12 @@ class Main {
         const $messageTxt = $('#messageTxt');
         ipcRenderer.send('git-commit-message', $messageTxt.val());
         $messageTxt.val('');
+      });
+
+      $('#abortMergeBtn').click(function() {
+        ipcRenderer.send('git-abort-merge', []);
+        $('#commitControls').show();
+        $('#mergeControls').hide();
       });
 
       $('#initBtn').click(function() {
@@ -312,6 +319,11 @@ ipcRenderer.on('git-log-message', (event, arg) => {
 
 ipcRenderer.on('git-diff-message', (event, arg) => {
   main.refreshStagingTables(arg);
+});
+
+ipcRenderer.on('git-merge-conflict-message', (event, arg) => {
+  $('#commitControls').hide();
+  $('#mergeControls').show();
 });
 
 ipcRenderer.on('git-fetch-creds', async (event, arg) => {

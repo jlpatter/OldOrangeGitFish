@@ -131,6 +131,12 @@ function createWindow() {
     });
   });
 
+  ipcMain.on('git-abort-merge', (event, arg) => {
+    gitManager.gitAbortMerge().then(function() {
+      win.webContents.send('refresh-message', []);
+    });
+  });
+
   ipcMain.on('git-reset-soft-message', (event, arg) => {
     gitManager.gitReset(arg, Git.Reset.TYPE.SOFT).then(function() {
       win.webContents.send('refresh-message', []);
