@@ -207,6 +207,7 @@ class Main {
         const shortResult = branchResult.startsWith('* ') ? branchResult.slice(2) : branchResult;
         const $branchResult = $('<tr class="unselectable"><td>' + branchResult + '</td></tr>');
 
+        // TODO: un-hardcode the use of origin here!
         if (branchResult.startsWith('origin/')) {
           $branchResult.on('dblclick', function() {
             ipcRenderer.send('git-checkout-remote-message', shortResult);
@@ -241,14 +242,17 @@ class Main {
           ipcRenderer.send('git-stage-message', unstagedFile);
         }
       });
+      // See this for different diff values: https://www.nodegit.org/api/diff/#DELTA
       const $row = $('<tr><td>' + ' ' + unstagedFile[1] + '</td></tr>');
-      if (unstagedFile[0] === 2) {
+      if (unstagedFile[0] === 2) { // Deleted
         $row.find('td').prepend('<i class="bi bi-dash-lg"></i> ');
-      } else if (unstagedFile[0] === 3) {
+      } else if (unstagedFile[0] === 3) { // Modified
         $row.find('td').prepend('<i class="bi bi-pen"></i> ');
-      } else if (unstagedFile[0] === 7) {
+      } else if (unstagedFile[0] === 7) { // Untracked
         $row.find('td').prepend('<i class="bi bi-plus-lg"></i> ');
-      } else {
+      } else if (unstagedFile[0] === 10) { // Conflicted
+        $row.find('td').prepend('<i class="bi bi-exclamation-diamond"></i> ');
+      } else { // Everything else
         $row.find('td').prepend('<i class="bi bi-question-circle"></i> ');
       }
       $row.find('td').append($button);
@@ -264,13 +268,15 @@ class Main {
         }
       });
       const $row = $('<tr><td>' + ' ' + stagedFile[1] + '</td></tr>');
-      if (stagedFile[0] === 2) {
+      if (stagedFile[0] === 2) { // Deleted
         $row.find('td').prepend('<i class="bi bi-dash-lg"></i> ');
-      } else if (stagedFile[0] === 3) {
+      } else if (stagedFile[0] === 3) { // Modified
         $row.find('td').prepend('<i class="bi bi-pen"></i> ');
-      } else if (stagedFile[0] === 1) {
+      } else if (stagedFile[0] === 1) { // Added
         $row.find('td').prepend('<i class="bi bi-plus-lg"></i> ');
-      } else {
+      } else if (stagedFile[0] === 10) { // Conflicted
+        $row.find('td').prepend('<i class="bi bi-exclamation-diamond"></i> ');
+      } else { // Everything else
         $row.find('td').prepend('<i class="bi bi-question-circle"></i> ');
       }
       $row.find('td').append($button);

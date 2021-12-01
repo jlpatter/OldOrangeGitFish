@@ -178,6 +178,29 @@ module.exports = class GitManager {
    */
   async gitCommit(win, message) {
     const self = this;
+    const author = await self.getSignature(win);
+    const index = await self.repo.refreshIndex();
+    const changes = await index.writeTree();
+    let head = null;
+    await Git.Reference.nameToId(self.repo, 'HEAD').then(function(oid) {
+      head = oid;
+    }).catch(function(error) {
+      head = null;
+    });
+    const parents = [];
+    if (head !== null) {
+      parents.push(await self.repo.getCommit(head));
+    }
+    await self.repo.createCommit('HEAD', author, author, message, changes, parents);
+  }
+
+  /**
+   * Returns the signature for right now.
+   * @param {Electron.CrossProcessExports.BrowserWindow} win
+   * @return {Signature}
+   */
+  async getSignature(win) {
+    const self = this;
     let fullname = '';
     let email = '';
     await self.repo.config().then(async function(config) {
@@ -206,20 +229,7 @@ module.exports = class GitManager {
         await config.setString('user.email', email);
       });
     }
-    const author = Git.Signature.now(fullname, email);
-    const index = await self.repo.refreshIndex();
-    const changes = await index.writeTree();
-    let head = null;
-    await Git.Reference.nameToId(self.repo, 'HEAD').then(function(oid) {
-      head = oid;
-    }).catch(function(error) {
-      head = null;
-    });
-    const parents = [];
-    if (head !== null) {
-      parents.push(await self.repo.getCommit(head));
-    }
-    await self.repo.createCommit('HEAD', author, author, message, changes, parents);
+    return Git.Signature.now(fullname, email);
   }
 
   /**
@@ -470,7 +480,51 @@ module.exports = class GitManager {
   }
 
   /**
-   * Resets the current branch to thet commitSha by the specified type.
+   * Merges the given commit into the HEAD commit.
+   * @param {Electron.CrossProcessExports.BrowserWindow} win
+   * @param {string} commitSha
+   * @return {Promise<void>}
+   */
+  async gitMerge(win, commitSha) {
+    const self = this;
+    await Git.Commit.lookup(self.repo, commitSha).then(async function(commit) {
+      await Git.AnnotatedCommit.lookup(self.repo, commit.id()).then(async function(annotatedCommit) {
+        Git.Merge.merge(self.repo, annotatedCommit, null, null);
+
+        // Check if there are merge conflicts
+        const diffFiles = await self.gitDiff();
+        let hasConflicts = false;
+        for (let i = 0; i < diffFiles[0].length && !hasConflicts; i++) {
+          if (diffFiles[0][i][0] === Git.Diff.DELTA.CONFLICTED) {
+            hasConflicts = true;
+          }
+        }
+        for (let i = 0; i < diffFiles[1].length && !hasConflicts; i++) {
+          if (diffFiles[1][i][0] === Git.Diff.DELTA.CONFLICTED) {
+            hasConflicts = true;
+          }
+        }
+
+        // If there are no conflicts, create a merge commit and push.
+        if (!hasConflicts) {
+          const author = await self.getSignature(win);
+          const index = await self.repo.refreshIndex();
+          const changes = await index.writeTree();
+          let head = null;
+          await self.repo.getHeadCommit().then(function(commit) {
+            head = commit;
+          });
+          const message = 'Merge commit ' + commitSha.slice(0, 6) + ' into commit ' + head.id().toString().slice(0, 6);
+          await self.repo.createCommit('HEAD', author, author, message, changes, [head, commit]);
+        } else {
+          // TODO: Add behavior for when there are conflicts!
+        }
+      });
+    });
+  }
+
+  /**
+   * Resets the current branch to the commitSha by the specified type.
    * @param {string} commitSha
    * @param {number} resetType
    */
