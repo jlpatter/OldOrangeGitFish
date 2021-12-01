@@ -200,8 +200,8 @@ class Main {
 
       $('#localTableBody tr').remove();
       $('#remoteTableBody tr').remove();
-      $('#localTableBody').append('<tr><th><h4>Local Branches</h4></th></tr>');
-      $('#remoteTableBody').append('<tr><td><h4>Remote Branches</h4></td></tr>');
+      $('#localTableBody').append('<tr><th><h6>Local Branches</h6></th></tr>');
+      $('#remoteTableBody').append('<tr><td><h6>Remote Branches</h6></td></tr>');
 
       branches.forEach(function(branchResult) {
         const shortResult = branchResult.startsWith('* ') ? branchResult.slice(2) : branchResult;
@@ -231,8 +231,8 @@ class Main {
     const self = this;
     $('#unstagedTableBody tr').remove();
     $('#stagedTableBody tr').remove();
-    $('#unstagedTableBody').append('<tr><th><h4>Unstaged Changes</h4></th></tr>');
-    $('#stagedTableBody').append('<tr><th><h4>Staged Changes</h4></th></tr>');
+    $('#unstagedTableBody').append('<tr><th><h6>Unstaged Changes</h6></th></tr>');
+    $('#stagedTableBody').append('<tr><th><h6>Staged Changes</h6></th></tr>');
 
     // Unstaged changes
     results[0].forEach(function(unstagedFile) {

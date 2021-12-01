@@ -18,6 +18,7 @@ Features so far:
 * View the history in the graph
 * Checkout branches
 * Create new branches
+* And more!
 
 ### Running on Linux
 
@@ -28,7 +29,7 @@ You will need to run the following commands in order to properly save credential
 * Arch-based: `sudo pacman -S libsecret`
 
 ### Development
-Setup environment: run `npm install` (which takes a really long time as it's compiling nodegit). If that step throws any errors,
+Setup environment: run `npm install`, then run `npm run install-app-deps` (which takes a really long time as it's compiling nodegit). If those steps throw any errors,
 be sure to install the missing dependencies or log an issue. You may want to install `nvm`
 and run `nvm use` in the project directory in order to use the correct version of node.
 
@@ -36,7 +37,7 @@ and run `nvm use` in the project directory in order to use the correct version o
 Perform the following steps in order:
 
 * Install Python2 and Python3
-* Install the LTS version (<17) of Nodejs (DO NOT use nvm unless you want more pain)
+* Install the LTS version (<17) of Nodejs (DO NOT use nvm unless you know what you're doing)
 * When installing Nodejs, be sure to select the option to install additional compilation tools and such (if the install fails/hangs halfway through, this is normal).
 * Make sure that [Chocolatey](https://chocolatey.org/) is installed
 * (Potentially optional) install visual studio community 2017
@@ -46,4 +47,5 @@ Perform the following steps in order:
 * Install [Strawberry Perl](https://strawberryperl.com/)
 * Clone OrangeGitFish somewhere
 * In the OrangeGitFish directory, Run `npm install`
+* Run `npm run install-app-deps`
 * Run `npm run start`
