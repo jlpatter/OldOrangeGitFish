@@ -604,18 +604,20 @@ module.exports = class GitManager {
     let privateKeyPath = '';
     let passphrase = '';
 
-    await self.repo.config().then(async function(config) {
-      await config.getStringBuf('orangegitfish.publickey').then(function(buf) {
-        publicKeyPath = buf.toString();
-      }).catch(function(error) {
-        publicKeyPath = '';
+    if (self.repo !== null) {
+      await self.repo.config().then(async function(config) {
+        await config.getStringBuf('orangegitfish.publickey').then(function(buf) {
+          publicKeyPath = buf.toString();
+        }).catch(function(error) {
+          publicKeyPath = '';
+        });
+        await config.getStringBuf('orangegitfish.privatekey').then(function(buf) {
+          privateKeyPath = buf.toString();
+        }).catch(function(error) {
+          privateKeyPath = '';
+        });
       });
-      await config.getStringBuf('orangegitfish.privatekey').then(function(buf) {
-        privateKeyPath = buf.toString();
-      }).catch(function(error) {
-        privateKeyPath = '';
-      });
-    });
+    }
 
     if (httpsCredentials.length === 0 && (sshCredentials.length === 0 || publicKeyPath === '' || privateKeyPath === '')) {
       await new Promise(function(resolve, reject) {
@@ -633,10 +635,12 @@ module.exports = class GitManager {
           passphrase = arg[2];
 
           await keytar.setPassword('orangegitfishssh', 'git', passphrase);
-          await self.repo.config().then(async function(config) {
-            await config.setString('orangegitfish.publickey', publicKeyPath);
-            await config.setString('orangegitfish.privatekey', privateKeyPath);
-          });
+          if (self.repo !== null) {
+            await self.repo.config().then(async function(config) {
+              await config.setString('orangegitfish.publickey', publicKeyPath);
+              await config.setString('orangegitfish.privatekey', privateKeyPath);
+            });
+          }
 
           resolve();
         });
