@@ -57,6 +57,12 @@ class Main {
         $('#mergeControls').hide();
       });
 
+      $('#continueMergeBtn').click(function() {
+        ipcRenderer.send('git-continue-merge', []);
+        $('#commitControls').show();
+        $('#mergeControls').hide();
+      });
+
       $('#initBtn').click(function() {
         dialog.showOpenDialog({properties: ['openDirectory']}).then(function(result) {
           ipcRenderer.send('git-init-message', result.filePaths[0]);

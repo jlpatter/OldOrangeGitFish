@@ -15,6 +15,7 @@ module.exports = class GitManager {
   constructor() {
     this.repo = null;
     this.filePath = '';
+    this.mergingCommit = null;
     this.emptyTree = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
   }
 
@@ -518,6 +519,7 @@ module.exports = class GitManager {
           await self.repo.createCommit('HEAD', author, author, message, changes, [head, commit]);
         } else {
           // Else alert the frontend that there's a merge conflict
+          self.mergingCommit = commit;
           win.webContents.send('git-merge-conflict-message', []);
         }
       });
@@ -533,6 +535,44 @@ module.exports = class GitManager {
     await self.repo.getHeadCommit().then(async function(commit) {
       await Git.Reset.reset(self.repo, commit, Git.Reset.TYPE.HARD);
     });
+  }
+
+  /**
+   * Continues a merge in progress
+   * @param {Electron.CrossProcessExports.BrowserWindow} win
+   * @return {Promise<void>}
+   */
+  async gitContinueMerge(win) {
+    const self = this;
+    // Check if there are merge conflicts
+    const diffFiles = await self.gitDiff();
+    let hasConflicts = false;
+
+    // If there are unstaged changes, say there is a conflict.
+    if (diffFiles[0].length > 0) {
+      hasConflicts = true;
+    }
+    for (let i = 0; i < diffFiles[1].length && !hasConflicts; i++) {
+      if (diffFiles[1][i][0] === Git.Diff.DELTA.CONFLICTED) {
+        hasConflicts = true;
+      }
+    }
+
+    // If there are no conflicts, create a merge commit.
+    if (!hasConflicts) {
+      const author = await self.getSignature(win);
+      const index = await self.repo.refreshIndex();
+      const changes = await index.writeTree();
+      let head = null;
+      await self.repo.getHeadCommit().then(function(commit) {
+        head = commit;
+      });
+      const message = 'Merge commit ' + self.mergingCommit.id().toString().slice(0, 6) + ' into commit ' + head.id().toString().slice(0, 6);
+      await self.repo.createCommit('HEAD', author, author, message, changes, [head, self.mergingCommit]);
+    } else {
+      // Else alert the frontend that there's a merge conflict
+      win.webContents.send('git-merge-conflict-message', []);
+    }
   }
 
   /**
