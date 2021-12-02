@@ -222,11 +222,17 @@ class Main {
 
         // TODO: un-hardcode the use of origin here!
         if (branchResult.startsWith('origin/')) {
+          $branchResult.contextmenu(function() {
+            self.showContextMenu(shortResult, 2); // 2 is remote
+          });
           $branchResult.on('dblclick', function() {
             ipcRenderer.send('git-checkout-remote-message', shortResult);
           });
           $('#remoteTableBody').append($branchResult);
         } else {
+          $branchResult.contextmenu(function() {
+            self.showContextMenu(shortResult, 1); // 1 is local
+          });
           $branchResult.on('dblclick', function() {
             ipcRenderer.send('git-checkout-message', shortResult);
           });
@@ -235,6 +241,27 @@ class Main {
       });
     }
   }
+
+  /**
+   * Shows the context menu.
+   * @param {string} branchName
+   * @param {number} branchType
+   */
+  showContextMenu(branchName, branchType) {
+    const $contextMenu = $('#contextMenu');
+    $contextMenu.empty();
+    $contextMenu.css('left', event.pageX + 'px');
+    $contextMenu.css('top', event.pageY + 'px');
+
+    const $deleteBtn = $('<button type="button" class="btn btn-danger btn-sm square-border"><i class="bi bi-dash-circle"></i> Delete</button>');
+    $deleteBtn.click(function() {
+      ipcRenderer.send('git-delete-branch', [branchName, branchType]);
+    });
+    $contextMenu.append($deleteBtn);
+
+    $contextMenu.show();
+  }
+
 
   /**
    * Refreshes the staging tables.

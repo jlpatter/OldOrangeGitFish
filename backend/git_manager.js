@@ -453,6 +453,7 @@ module.exports = class GitManager {
    */
   async gitPush(win) {
     const self = this;
+    // TODO: un-hardcode the use of origin here!
     await self.repo.getRemote('origin').then(async function(remote) {
       await self.repo.getCurrentBranch().then(async function(currentRef) {
         await remote.push([currentRef.toString()], {
@@ -477,6 +478,32 @@ module.exports = class GitManager {
       await Git.Branch.create(self.repo, branchName, headCommit, 0).then(async function(ref) {
         await self.gitCheckout(ref);
       });
+    });
+  }
+
+  /**
+   * Deletes a branch
+   * @param {Electron.CrossProcessExports.BrowserWindow} win
+   * @param {Array<string|number>} branchInfo
+   * @return {Promise<void>}
+   */
+  async gitDeleteBranch(win, branchInfo) {
+    const self = this;
+    await Git.Branch.lookup(self.repo, branchInfo[0], branchInfo[1]).then(async function(ref) {
+      if (branchInfo[1] === 1) {
+        Git.Branch.delete(ref);
+      } else if (branchInfo[1] === 2) {
+        // TODO: Un-hardcode the use of origin here!
+        await self.repo.getRemote('origin').then(async function(remote) {
+          await remote.push([':' + ref.toString()], {
+            callbacks: {
+              credentials: async function() {
+                return await self.getCredential(win);
+              },
+            },
+          });
+        });
+      }
     });
   }
 
