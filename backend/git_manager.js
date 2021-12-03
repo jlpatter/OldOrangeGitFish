@@ -495,7 +495,8 @@ module.exports = class GitManager {
       } else if (branchInfo[1] === 2) {
         // TODO: Un-hardcode the use of origin here!
         await self.repo.getRemote('origin').then(async function(remote) {
-          await remote.push([':' + ref.toString()], {
+          // TODO: Un-hardcode the 7 (aka length of string 'origin' + 1) here!
+          await remote.push([':refs/heads/' + ref.shorthand().slice(7)], {
             callbacks: {
               credentials: async function() {
                 return await self.getCredential(win);
