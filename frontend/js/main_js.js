@@ -261,7 +261,7 @@ class Main {
     $contextMenu.css('left', event.pageX + 'px');
     $contextMenu.css('top', event.pageY + 'px');
 
-    const $deleteBtn = $('<button type="button" class="btn btn-danger btn-sm square-border cm-item"><i class="bi bi-dash-circle"></i> Delete</button>');
+    const $deleteBtn = $('<button type="button" class="btn btn-outline-danger btn-sm rounded-0 cm-item"><i class="bi bi-dash-circle"></i> Delete</button>');
     $deleteBtn.click(function() {
       ipcRenderer.send('git-delete-branch', [branchName, branchType]);
     });

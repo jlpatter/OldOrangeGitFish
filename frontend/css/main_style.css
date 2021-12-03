@@ -31,10 +31,6 @@ td {
     border-radius: 15px;
 }
 
-.square-border {
-    border-radius: 0;
-}
-
 svg rect {
     opacity: 0;
 }

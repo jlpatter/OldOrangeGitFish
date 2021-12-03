@@ -206,25 +206,25 @@ module.exports = class SVGRow {
       $contextMenu.css('left', event.pageX + 'px');
       $contextMenu.css('top', event.pageY + 'px');
 
-      const $mergeBtn = $('<button type="button" class="btn btn-secondary btn-sm square-border cm-item"><i class="bi bi-arrows-angle-contract"></i> Merge</button>');
+      const $mergeBtn = $('<button type="button" class="btn btn-outline-light btn-sm rounded-0 cm-item"><i class="bi bi-arrows-angle-contract"></i> Merge</button>');
       $mergeBtn.click(function() {
         ipcRenderer.send('git-merge-message', self.sha);
       });
       $contextMenu.append($mergeBtn);
 
-      const $softResetBtn = $('<button type="button" class="btn btn-secondary btn-sm square-border cm-item"><i class="bi bi-arrow-clockwise"></i> Soft Reset to Here</button>');
+      const $softResetBtn = $('<button type="button" class="btn btn-outline-light btn-sm rounded-0 cm-item"><i class="bi bi-arrow-clockwise"></i> Soft Reset to Here</button>');
       $softResetBtn.click(function() {
         ipcRenderer.send('git-reset-soft-message', self.sha);
       });
       $contextMenu.append($softResetBtn);
 
-      const $mixedResetBtn = $('<button type="button" class="btn btn-secondary btn-sm square-border cm-item"><i class="bi bi-arrow-clockwise"></i> Mixed Reset to Here</button>');
+      const $mixedResetBtn = $('<button type="button" class="btn btn-outline-light btn-sm rounded-0 cm-item"><i class="bi bi-arrow-clockwise"></i> Mixed Reset to Here</button>');
       $mixedResetBtn.click(function() {
         ipcRenderer.send('git-reset-mixed-message', self.sha);
       });
       $contextMenu.append($mixedResetBtn);
 
-      const $hardResetBtn = $('<button type="button" class="btn btn-secondary btn-sm square-border cm-item"><i class="bi bi-arrow-clockwise"></i> Hard Reset to Here</button>');
+      const $hardResetBtn = $('<button type="button" class="btn btn-outline-light btn-sm rounded-0 cm-item"><i class="bi bi-arrow-clockwise"></i> Hard Reset to Here</button>');
       $hardResetBtn.click(function() {
         ipcRenderer.send('git-reset-hard-message', self.sha);
       });
