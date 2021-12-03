@@ -468,6 +468,27 @@ module.exports = class GitManager {
   }
 
   /**
+   * Force pushes the local branch to the remote.
+   * @param {Electron.CrossProcessExports.BrowserWindow} win
+   * @return {Promise<void>}
+   */
+  async gitForcePush(win) {
+    const self = this;
+    // TODO: un-hardcode the use of origin here!
+    await self.repo.getRemote('origin').then(async function(remote) {
+      await self.repo.getCurrentBranch().then(async function(currentRef) {
+        await remote.push(['+' + currentRef.toString()], {
+          callbacks: {
+            credentials: async function() {
+              return await self.getCredential(win);
+            },
+          },
+        });
+      });
+    });
+  }
+
+  /**
    * Creates a new branch
    * @param {string} branchName
    * @return {Promise<void>}

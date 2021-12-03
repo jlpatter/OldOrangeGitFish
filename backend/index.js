@@ -119,6 +119,12 @@ function createWindow() {
     });
   });
 
+  ipcMain.on('git-force-push-message', (event, arg) => {
+    gitManager.gitForcePush(win).then(function() {
+      win.webContents.send('refresh-message', []);
+    });
+  });
+
   ipcMain.on('git-branch-message', (event, arg) => {
     gitManager.gitBranch(arg).then(function() {
       win.webContents.send('refresh-message', []);

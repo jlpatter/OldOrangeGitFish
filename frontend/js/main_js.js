@@ -37,6 +37,10 @@ class Main {
         ipcRenderer.send('git-push-message', []);
       });
 
+      $('#forcePushBtn').click(function() {
+        ipcRenderer.send('git-force-push-message', []);
+      });
+
       $('#branchBtn').click(async function() {
         await self.openCreateBranchWindow();
       });
