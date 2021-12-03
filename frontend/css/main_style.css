@@ -6,6 +6,10 @@ td {
     float: right;
 }
 
+.cm-item {
+    text-align: left;
+}
+
 #commitColumn, #branchColumn {
     display: block;
     height: calc(100vh - 110px);
