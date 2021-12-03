@@ -272,9 +272,17 @@ module.exports = class GitManager {
     const commitBranchDict = {};
     const gitRefValues = Object.values(gitReferences);
     for (const ref of gitRefValues) {
-      const commitId = await self.repo.getBranchCommit(ref).then(function(commit) {
+      let commitId = null;
+      await self.repo.getBranchCommit(ref).then(function(commit) {
         branchCommits.push(commit);
-        return commit.id().toString();
+        commitId = commit.id().toString();
+      }).catch(async function(error) {
+        await Git.Tag.lookup(self.repo, ref.target()).then(async function(tag) {
+          await Git.Commit.lookup(self.repo, tag.targetId()).then(function(commit) {
+            branchCommits.push(commit);
+            commitId = commit.id().toString();
+          });
+        });
       });
 
       let refString = '';
