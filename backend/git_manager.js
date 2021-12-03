@@ -272,24 +272,24 @@ module.exports = class GitManager {
     const commitBranchDict = {};
     const gitRefValues = Object.values(gitReferences);
     for (const ref of gitRefValues) {
-      if (!ref.toString().startsWith('refs/tags')) {
-        const commitId = await self.repo.getBranchCommit(ref).then(function(commit) {
-          branchCommits.push(commit);
-          return commit.id().toString();
-        });
-        if (ref.isHead()) {
-          if (commitId in commitBranchDict) {
-            commitBranchDict[commitId].push('* ' + ref.shorthand());
-          } else {
-            commitBranchDict[commitId] = ['* ' + ref.shorthand()];
-          }
-        } else {
-          if (commitId in commitBranchDict) {
-            commitBranchDict[commitId].push(ref.shorthand());
-          } else {
-            commitBranchDict[commitId] = [ref.shorthand()];
-          }
-        }
+      const commitId = await self.repo.getBranchCommit(ref).then(function(commit) {
+        branchCommits.push(commit);
+        return commit.id().toString();
+      });
+
+      let refString = '';
+      if (ref.isHead()) {
+        refString += '* ';
+      }
+      if (ref.toString().startsWith('refs/tags')) {
+        refString += ref.toString();
+      } else {
+        refString += ref.shorthand();
+      }
+      if (commitId in commitBranchDict) {
+        commitBranchDict[commitId].push(refString);
+      } else {
+        commitBranchDict[commitId] = [refString];
       }
     }
     return commitBranchDict;

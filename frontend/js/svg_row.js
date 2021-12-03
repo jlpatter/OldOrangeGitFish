@@ -138,6 +138,9 @@ module.exports = class SVGRow {
     let currentX = (largestXValue + 1) * 20 + 20;
     const contextFunction = self.getContextFunction();
     self.entry[0].forEach(function(branch) {
+      if (branch.startsWith('refs/tags')) {
+        branch = branch.slice(10);
+      }
       const branchText = '(' + branch + ') ';
       const svgTextElem = self.makeSVG('text', {x: currentX, y: pixelY + 6, fill: color});
       svgTextElem.textContent = branchText;

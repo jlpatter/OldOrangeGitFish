@@ -217,8 +217,10 @@ class Main {
 
       $('#localTableBody tr').remove();
       $('#remoteTableBody tr').remove();
+      $('#tagTableBody tr').remove();
       $('#localTableBody').append('<tr><th><h6>Local Branches</h6></th></tr>');
       $('#remoteTableBody').append('<tr><td><h6>Remote Branches</h6></td></tr>');
+      $('#tagTableBody').append('<tr><td><h6>Tags</h6></td></tr>');
 
       branches.forEach(function(branchResult) {
         const shortResult = branchResult.startsWith('* ') ? branchResult.slice(2) : branchResult;
@@ -233,6 +235,8 @@ class Main {
             ipcRenderer.send('git-checkout-remote-message', shortResult);
           });
           $('#remoteTableBody').append($branchResult);
+        } else if (branchResult.startsWith('refs/tags')) {
+          $('#tagTableBody').append('<tr class="unselectable"><td>' + branchResult.slice(10) + '</td></tr>');
         } else {
           $branchResult.contextmenu(function() {
             self.showContextMenu(shortResult, 1); // 1 is local
