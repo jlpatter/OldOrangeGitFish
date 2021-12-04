@@ -212,6 +212,12 @@ module.exports = class SVGRow {
       });
       $contextMenu.append($mergeBtn);
 
+      const $cherrypickBtn = $('<button type="button" class="btn btn-outline-light btn-sm rounded-0 cm-item"><i class="bi bi-bullseye"></i> Cherrypick Commit</button>');
+      $cherrypickBtn.click(function() {
+        ipcRenderer.send('git-cherrypick-message', self.sha);
+      });
+      $contextMenu.append($cherrypickBtn);
+
       const $copyShaBtn = $('<button type="button" class="btn btn-outline-light btn-sm rounded-0 cm-item"><i class="bi bi-clipboard"></i> Copy SHA</button>');
       $copyShaBtn.click(function() {
         navigator.clipboard.writeText(self.sha);

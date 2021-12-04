@@ -155,6 +155,12 @@ function createWindow() {
     });
   });
 
+  ipcMain.on('git-cherrypick-message', (event, arg) => {
+    gitManager.gitCherrypick(arg).then(function() {
+      win.webContents.send('refresh-message', []);
+    });
+  });
+
   ipcMain.on('git-reset-soft-message', (event, arg) => {
     gitManager.gitReset(arg, Git.Reset.TYPE.SOFT).then(function() {
       win.webContents.send('refresh-message', []);

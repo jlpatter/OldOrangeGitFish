@@ -637,6 +637,18 @@ module.exports = class GitManager {
   }
 
   /**
+   * Cherrypicks the given commit onto head.
+   * @param {string} commitSha
+   * @return {Promise<void>}
+   */
+  async gitCherrypick(commitSha) {
+    const self = this;
+    await Git.Commit.lookup(self.repo, commitSha).then(async function(commit) {
+      await Git.Cherrypick.cherrypick(self.repo, commit);
+    });
+  }
+
+  /**
    * Resets the current branch to the commitSha by the specified type.
    * @param {string} commitSha
    * @param {number} resetType
