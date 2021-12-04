@@ -143,14 +143,20 @@ function createWindow() {
     });
   });
 
-  ipcMain.on('git-abort-merge', (event, arg) => {
-    gitManager.gitAbortMerge().then(function() {
+  ipcMain.on('git-abort', (event, arg) => {
+    gitManager.gitAbort().then(function() {
       win.webContents.send('refresh-message', []);
     });
   });
 
   ipcMain.on('git-continue-merge', (event, arg) => {
     gitManager.gitContinueMerge(win).then(function() {
+      win.webContents.send('refresh-message', []);
+    });
+  });
+
+  ipcMain.on('git-continue-cherrypick', (event, arg) => {
+    gitManager.gitContinueCherrypick(win).then(function() {
       win.webContents.send('refresh-message', []);
     });
   });

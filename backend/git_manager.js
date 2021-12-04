@@ -16,6 +16,7 @@ module.exports = class GitManager {
     this.repo = null;
     this.filePath = '';
     this.mergingCommit = null;
+    this.cherrypickCommit = null;
     this.emptyTree = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
   }
 
@@ -582,10 +583,10 @@ module.exports = class GitManager {
   }
 
   /**
-   * Aborts a merge in progress
+   * Does a hard reset to head
    * @return {Promise<void>}
    */
-  async gitAbortMerge() {
+  async gitAbort() {
     const self = this;
     await self.repo.getHeadCommit().then(async function(commit) {
       await Git.Reset.reset(self.repo, commit, Git.Reset.TYPE.HARD);
@@ -612,6 +613,23 @@ module.exports = class GitManager {
     } else {
       // Else alert the frontend that there's a merge conflict
       win.webContents.send('git-merge-conflict-message', []);
+    }
+  }
+
+  /**
+   * Continues a cherrypick in progress
+   * @param {Electron.CrossProcessExports.BrowserWindow} win
+   * @return {Promise<void>}
+   */
+  async gitContinueCherrypick(win) {
+    const self = this;
+    const hasConflicts = await self.hasConflicts();
+
+    if (!hasConflicts) {
+      const committer = await self.getSignature(win);
+      await self.gitCommit(win, self.cherrypickCommit.message(), self.cherrypickCommit.author(), committer, null);
+    } else {
+      win.webContents.send('git-cherrypick-conflict', []);
     }
   }
 
@@ -653,7 +671,8 @@ module.exports = class GitManager {
         const committer = await self.getSignature(win);
         await self.gitCommit(win, commit.message(), commit.author(), committer, null);
       } else {
-        // console.log(self.repo.isCherrypicking());
+        self.cherrypickCommit = commit;
+        win.webContents.send('git-cherrypick-conflict', []);
       }
     });
   }

@@ -19,7 +19,7 @@ class Main {
       self.svgManager = new SVGManager();
 
       $('#contextMenu').hide();
-      $('#mergeControls').hide();
+      self.showCommitControls();
 
       $(window).click(function() {
         $('#contextMenu').hide();
@@ -56,15 +56,23 @@ class Main {
       });
 
       $('#abortMergeBtn').click(function() {
-        ipcRenderer.send('git-abort-merge', []);
-        $('#commitControls').show();
-        $('#mergeControls').hide();
+        ipcRenderer.send('git-abort', []);
+        self.showCommitControls();
       });
 
       $('#continueMergeBtn').click(function() {
         ipcRenderer.send('git-continue-merge', []);
-        $('#commitControls').show();
-        $('#mergeControls').hide();
+        self.showCommitControls();
+      });
+
+      $('#abortCherrypickBtn').click(function() {
+        ipcRenderer.send('git-abort', []);
+        self.showCommitControls();
+      });
+
+      $('#continueCherrypickBtn').click(function() {
+        ipcRenderer.send('git-continue-cherrypick', []);
+        self.showCommitControls();
       });
 
       $('#initBtn').click(function() {
@@ -91,6 +99,33 @@ class Main {
         app.quit();
       });
     });
+  }
+
+  /**
+   * Shows the commit message text field and commit button.
+   */
+  showCommitControls() {
+    $('#commitControls').show();
+    $('#mergeControls').hide();
+    $('#cherrypickControls').hide();
+  }
+
+  /**
+   * Shows the merge continue and abort buttons.
+   */
+  showMergeControls() {
+    $('#commitControls').hide();
+    $('#mergeControls').show();
+    $('#cherrypickControls').hide();
+  }
+
+  /**
+   * Shows the cherrypick buttons and commit button.
+   */
+  showCherrypickControls() {
+    $('#commitControls').hide();
+    $('#mergeControls').hide();
+    $('#cherrypickControls').show();
   }
 
   /**
@@ -363,8 +398,11 @@ ipcRenderer.on('git-diff-message', (event, arg) => {
 });
 
 ipcRenderer.on('git-merge-conflict-message', (event, arg) => {
-  $('#commitControls').hide();
-  $('#mergeControls').show();
+  main.showMergeControls();
+});
+
+ipcRenderer.on('git-cherrypick-conflict', (event, arg) => {
+  main.showCherrypickControls();
 });
 
 ipcRenderer.on('git-fetch-creds', async (event, arg) => {
