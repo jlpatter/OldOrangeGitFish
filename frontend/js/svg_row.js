@@ -212,6 +212,12 @@ module.exports = class SVGRow {
       });
       $contextMenu.append($mergeBtn);
 
+      const $copyShaBtn = $('<button type="button" class="btn btn-outline-light btn-sm rounded-0 cm-item"><i class="bi bi-clipboard"></i> Copy SHA</button>');
+      $copyShaBtn.click(function() {
+        navigator.clipboard.writeText(self.sha);
+      });
+      $contextMenu.append($copyShaBtn);
+
       const $softResetBtn = $('<button type="button" class="btn btn-outline-light btn-sm rounded-0 cm-item"><i class="bi bi-arrow-clockwise"></i> Soft Reset to Here</button>');
       $softResetBtn.click(function() {
         ipcRenderer.send('git-reset-soft-message', self.sha);
