@@ -175,11 +175,19 @@ module.exports = class GitManager {
    * Commmits staged changes to the branch.
    * @param {Electron.CrossProcessExports.BrowserWindow} win
    * @param {string} message The message to use for the commit.
+   * @param {Signature|null} author
+   * @param {Signature|null} committer
+   * @param {Array<Commit>|null} parents
    * @return {Promise<void>}
    */
-  async gitCommit(win, message) {
+  async gitCommit(win, message, author=null, committer=null, parents=null) {
     const self = this;
-    const author = await self.getSignature(win);
+    if (author === null) {
+      author = await self.getSignature(win);
+    }
+    if (committer === null) {
+      committer = author;
+    }
     const index = await self.repo.refreshIndex();
     const changes = await index.writeTree();
     let head = null;
@@ -188,11 +196,13 @@ module.exports = class GitManager {
     }).catch(function(error) {
       head = null;
     });
-    const parents = [];
-    if (head !== null) {
-      parents.push(await self.repo.getCommit(head));
+    if (parents === null) {
+      parents = [];
+      if (head !== null) {
+        parents.push(await self.repo.getCommit(head));
+      }
     }
-    await self.repo.createCommit('HEAD', author, author, message, changes, parents);
+    await self.repo.createCommit('HEAD', author, committer, message, changes, parents);
   }
 
   /**
@@ -553,31 +563,15 @@ module.exports = class GitManager {
       await Git.AnnotatedCommit.lookup(self.repo, commit.id()).then(async function(annotatedCommit) {
         Git.Merge.merge(self.repo, annotatedCommit, null, null);
 
-        // Check if there are merge conflicts
-        const diffFiles = await self.gitDiff();
-        let hasConflicts = false;
-        for (let i = 0; i < diffFiles[0].length && !hasConflicts; i++) {
-          if (diffFiles[0][i][0] === Git.Diff.DELTA.CONFLICTED) {
-            hasConflicts = true;
-          }
-        }
-        for (let i = 0; i < diffFiles[1].length && !hasConflicts; i++) {
-          if (diffFiles[1][i][0] === Git.Diff.DELTA.CONFLICTED) {
-            hasConflicts = true;
-          }
-        }
-
+        const hasConflicts = await self.hasConflicts();
         // If there are no conflicts, create a merge commit.
         if (!hasConflicts) {
-          const author = await self.getSignature(win);
-          const index = await self.repo.refreshIndex();
-          const changes = await index.writeTree();
           let head = null;
-          await self.repo.getHeadCommit().then(function(commit) {
-            head = commit;
+          await self.repo.getHeadCommit().then(function(headCommit) {
+            head = headCommit;
           });
           const message = 'Merge commit ' + commitSha.slice(0, 6) + ' into commit ' + head.id().toString().slice(0, 6);
-          await self.repo.createCommit('HEAD', author, author, message, changes, [head, commit]);
+          await self.gitCommit(win, message, null, null, [head, commit]);
         } else {
           // Else alert the frontend that there's a merge conflict
           self.mergingCommit = commit;
@@ -605,6 +599,28 @@ module.exports = class GitManager {
    */
   async gitContinueMerge(win) {
     const self = this;
+    const hasConflicts = await self.hasConflicts();
+
+    // If there are no conflicts, create a merge commit.
+    if (!hasConflicts) {
+      let head = null;
+      await self.repo.getHeadCommit().then(function(commit) {
+        head = commit;
+      });
+      const message = 'Merge commit ' + self.mergingCommit.id().toString().slice(0, 6) + ' into commit ' + head.id().toString().slice(0, 6);
+      await self.gitCommit(win, message, null, null, [head, self.mergingCommit]);
+    } else {
+      // Else alert the frontend that there's a merge conflict
+      win.webContents.send('git-merge-conflict-message', []);
+    }
+  }
+
+  /**
+   * Checks if there are conflicts in the working directory or index currently
+   * @return {Promise<boolean>}
+   */
+  async hasConflicts() {
+    const self = this;
     // Check if there are merge conflicts
     const diffFiles = await self.gitDiff();
     let hasConflicts = false;
@@ -618,33 +634,27 @@ module.exports = class GitManager {
         hasConflicts = true;
       }
     }
-
-    // If there are no conflicts, create a merge commit.
-    if (!hasConflicts) {
-      const author = await self.getSignature(win);
-      const index = await self.repo.refreshIndex();
-      const changes = await index.writeTree();
-      let head = null;
-      await self.repo.getHeadCommit().then(function(commit) {
-        head = commit;
-      });
-      const message = 'Merge commit ' + self.mergingCommit.id().toString().slice(0, 6) + ' into commit ' + head.id().toString().slice(0, 6);
-      await self.repo.createCommit('HEAD', author, author, message, changes, [head, self.mergingCommit]);
-    } else {
-      // Else alert the frontend that there's a merge conflict
-      win.webContents.send('git-merge-conflict-message', []);
-    }
+    return hasConflicts;
   }
 
   /**
    * Cherrypicks the given commit onto head.
+   * @param {Electron.CrossProcessExports.BrowserWindow} win
    * @param {string} commitSha
    * @return {Promise<void>}
    */
-  async gitCherrypick(commitSha) {
+  async gitCherrypick(win, commitSha) {
     const self = this;
     await Git.Commit.lookup(self.repo, commitSha).then(async function(commit) {
       await Git.Cherrypick.cherrypick(self.repo, commit);
+
+      const hasConflicts = await self.hasConflicts();
+      if (!hasConflicts) {
+        const committer = await self.getSignature(win);
+        await self.gitCommit(win, commit.message(), commit.author(), committer, null);
+      } else {
+        // console.log(self.repo.isCherrypicking());
+      }
     });
   }
 

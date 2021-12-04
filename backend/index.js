@@ -156,7 +156,7 @@ function createWindow() {
   });
 
   ipcMain.on('git-cherrypick-message', (event, arg) => {
-    gitManager.gitCherrypick(arg).then(function() {
+    gitManager.gitCherrypick(win, arg).then(function() {
       win.webContents.send('refresh-message', []);
     });
   });
