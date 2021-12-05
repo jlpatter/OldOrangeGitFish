@@ -4,6 +4,16 @@ const ipcRenderer = require('electron').ipcRenderer;
  * A row in the svg table.
  */
 module.exports = class SVGRow {
+  X_OFFSET = 20;
+  Y_OFFSET = 20;
+  X_SPACING = 20;
+  Y_SPACING = 30;
+  TEXT_Y_ALIGNMENT = 6;
+  CIRCLE_RADIUS = 10;
+  RECT_Y_OFFSET = -12;
+  RECT_HEIGHT = 24;
+  BRANCH_TEXT_SPACING = 5;
+
   /**
    * Construct the svg row
    * @param {string} sha
@@ -95,8 +105,8 @@ module.exports = class SVGRow {
     }
 
     // Set the space of the line from the current node to its parents as occupied.
-    const pixelX = self.x * 20 + 20;
-    const pixelY = self.y * 30 + 20;
+    const pixelX = self.x * self.X_SPACING + self.X_OFFSET;
+    const pixelY = self.y * self.Y_SPACING + self.Y_OFFSET;
     const color = self.getColor(self.x);
     if (parentSVGRows.length > 0) {
       for (let i = 0; i < parentSVGRows.length; i++) {
@@ -115,9 +125,9 @@ module.exports = class SVGRow {
     // Draw the lines from the current node to its children.
     if (childSVGRows.length > 0) {
       for (let i = 0; i < childSVGRows.length; i++) {
-        const childPixelX = childSVGRows[i].x * 20 + 20;
-        const childPixelY = childSVGRows[i].y * 30 + 20;
-        const beforePixelY = (self.y - 1) * 30 + 20;
+        const childPixelX = childSVGRows[i].x * self.X_SPACING + self.X_OFFSET;
+        const childPixelY = childSVGRows[i].y * self.Y_SPACING + self.Y_OFFSET;
+        const beforePixelY = (self.y - 1) * self.Y_SPACING + self.Y_OFFSET;
         const svgLine = self.makeSVG('line', {x1: childPixelX, y1: childPixelY, x2: childPixelX, y2: beforePixelY, style: 'stroke:' + self.getColor(childSVGRows[i].x) + ';stroke-width:4'});
         const angledSVGLine = self.makeSVG('line', {x1: childPixelX, y1: beforePixelY, x2: pixelX, y2: pixelY, style: 'stroke:' + self.getColor(childSVGRows[i].x) + ';stroke-width:4'});
         $commitTableSVG.append(svgLine);
@@ -126,7 +136,7 @@ module.exports = class SVGRow {
     }
 
     // Now draw the node.
-    const svgCircle = self.makeSVG('circle', {'cx': pixelX, 'cy': pixelY, 'r': 10, 'stroke': color, 'stroke-width': 1, 'fill': color});
+    const svgCircle = self.makeSVG('circle', {'cx': pixelX, 'cy': pixelY, 'r': self.CIRCLE_RADIUS, 'stroke': color, 'stroke-width': 1, 'fill': color});
     $commitTableSVG.append(svgCircle);
 
     // Draw the branch text.
@@ -135,28 +145,28 @@ module.exports = class SVGRow {
     for (let i = 0; i < occupiedRowNums.length; i++) {
       largestXValue = Math.max(largestXValue, Number(occupiedRowNums[i]));
     }
-    let currentX = (largestXValue + 1) * 20 + 20;
+    let currentX = (largestXValue + 1) * self.X_SPACING + self.X_OFFSET;
     const contextFunction = self.getContextFunction();
     self.entry[0].forEach(function(branch) {
       let branchText = '(' + branch[0] + ')';
       if (branch[0].startsWith('refs/tags')) {
         branchText = '(' + branch[0].slice(10) + ')';
       }
-      const svgTextElem = self.makeSVG('text', {x: currentX, y: pixelY + 6, fill: color});
+      const svgTextElem = self.makeSVG('text', {x: currentX, y: pixelY + self.TEXT_Y_ALIGNMENT, fill: color});
       svgTextElem.textContent = branchText;
       svgTextElem.oncontextmenu = contextFunction;
       $commitTableSVG.append(svgTextElem);
-      currentX += svgTextElem.getBBox().width + 5;
+      currentX += svgTextElem.getBBox().width + self.BRANCH_TEXT_SPACING;
     });
 
     // Draw the summary text.
-    const entryElem = self.makeSVG('text', {x: currentX, y: pixelY + 6, fill: 'white'});
+    const entryElem = self.makeSVG('text', {x: currentX, y: pixelY + self.TEXT_Y_ALIGNMENT, fill: 'white'});
     entryElem.textContent = self.entry[1][1];
     entryElem.oncontextmenu = contextFunction;
     $commitTableSVG.append(entryElem);
     self.width = currentX + entryElem.getBBox().width;
 
-    const rectElem = self.makeSVG('rect', {x: pixelX, y: pixelY - 12, width: self.width, height: 24, style: 'fill:white;fill-opacity:0.1;'});
+    const rectElem = self.makeSVG('rect', {x: pixelX, y: pixelY + self.RECT_Y_OFFSET, width: self.width, height: self.RECT_HEIGHT, style: 'fill:white;fill-opacity:0.1;'});
     rectElem.oncontextmenu = contextFunction;
     $commitTableSVG.append(rectElem);
   }
