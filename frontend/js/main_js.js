@@ -237,7 +237,7 @@ class Main {
 
   /**
    * Refreshes the branch tables and commit table.
-   * @param {Array<Array<Array<string>|string>>} results
+   * @param {Array<Array<Array<Array<string|Array<number>>>|string>>} results
    */
   refreshBranchAndCommitTables(results) {
     const self = this;
@@ -258,11 +258,24 @@ class Main {
       $('#tagTableBody').append('<tr><td><h6>Tags</h6></td></tr>');
 
       branches.forEach(function(branchResult) {
-        const shortResult = branchResult.startsWith('* ') ? branchResult.slice(2) : branchResult;
-        const $branchResult = $('<tr class="unselectable"><td>' + branchResult + '</td></tr>');
+        const shortResult = branchResult[0].startsWith('* ') ? branchResult[0].slice(2) : branchResult[0];
+        let branchResultHTML = '';
+        if (branchResult[1].length === 0) {
+          branchResultHTML = '<tr class="unselectable"><td>' + branchResult[0] + '</td></tr>';
+        } else {
+          branchResultHTML = '<tr class="unselectable"><td>' + branchResult[0] + ' ';
+          if (branchResult[1][1] > 0) {
+            branchResultHTML += '<span class="right"><i class="bi bi-arrow-down"></i>' + branchResult[1][1] + '</span>';
+          }
+          if (branchResult[1][0] > 0) {
+            branchResultHTML += '<span class="right"><i class="bi bi-arrow-up"></i>' + branchResult[1][0] + '</span>';
+          }
+          branchResultHTML += '</td></tr>';
+        }
+        const $branchResult = $(branchResultHTML);
 
         // TODO: un-hardcode the use of origin here!
-        if (branchResult.startsWith('origin/')) {
+        if (branchResult[0].startsWith('origin/')) {
           $branchResult.contextmenu(function() {
             self.showContextMenu(shortResult, 2); // 2 is remote
           });
@@ -270,8 +283,8 @@ class Main {
             ipcRenderer.send('git-checkout-remote-message', shortResult);
           });
           $('#remoteTableBody').append($branchResult);
-        } else if (branchResult.startsWith('refs/tags')) {
-          $('#tagTableBody').append('<tr class="unselectable"><td>' + branchResult.slice(10) + '</td></tr>');
+        } else if (branchResult[0].startsWith('refs/tags')) {
+          $('#tagTableBody').append('<tr class="unselectable"><td>' + branchResult[0].slice(10) + '</td></tr>');
         } else {
           $branchResult.contextmenu(function() {
             self.showContextMenu(shortResult, 1); // 1 is local

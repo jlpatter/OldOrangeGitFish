@@ -273,6 +273,29 @@ module.exports = class GitManager {
   }
 
   /**
+   * Gets the ahead and behind counts between the ref and its remote.
+   * Returns an empty array if the ref has no remote.
+   * @param {Reference} ref
+   * @return {Promise<Array<number>>}
+   */
+  async getAheadBehindCounts(ref) {
+    const self = this;
+    let aheadBehindCount = [];
+    if (!ref.isRemote() && !ref.isTag()) {
+      await Git.Branch.upstream(ref).then(async function(remoteRef) {
+        await Git.Graph.aheadBehind(self.repo, ref.target(), remoteRef.target()).then(function(result) {
+          aheadBehindCount = [result.ahead, result.behind];
+        });
+      }).catch(function(error) {
+        if (error.errno !== Git.Error.CODE.ENOTFOUND) {
+          throw new Error(error.toString());
+        }
+      });
+    }
+    return aheadBehindCount;
+  }
+
+  /**
    * Gets the commits from branches and adds them to the branchCommits variable.
    * @param {Object<string, Reference>} gitReferences Branches and tags
    * @param {Array<Commit>} branchCommits The variable used to store branch commits
@@ -309,10 +332,11 @@ module.exports = class GitManager {
       } else {
         refString += ref.shorthand();
       }
+      const aheadBehindCounts = await self.getAheadBehindCounts(ref);
       if (commitId in commitBranchDict) {
-        commitBranchDict[commitId].push(refString);
+        commitBranchDict[commitId].push([refString, aheadBehindCounts]);
       } else {
-        commitBranchDict[commitId] = [refString];
+        commitBranchDict[commitId] = [[refString, aheadBehindCounts]];
       }
     }
     return commitBranchDict;
