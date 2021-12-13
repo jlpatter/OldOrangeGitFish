@@ -29,8 +29,9 @@ You will need to run the following commands in order to properly save credential
 * Arch-based: `sudo pacman -S libsecret`
 
 ### Development
-Setup environment: run `npm install`, then run `npm run install-app-deps` (which takes a really long time as it's compiling nodegit). If those steps throw any errors,
-be sure to install the missing dependencies or log an issue. You may want to install `nvm`
+Setup environment: First, clone nodegit in the same directory containing the OrangeGitFish project directory, then run `npm install` in the nodegit directory (may have to run multiple times to install all dependencies).
+Then, in the OrangeGitFish directory, run `npm install`, then run `npm run install-app-deps` (which takes a really long time as it's compiling nodegit).
+If those steps throw any errors, be sure to install the missing dependencies or log an issue. You may want to install `nvm`
 and run `nvm use` in the project directory in order to use the correct version of node.
 
 #### Windows Development
@@ -45,7 +46,9 @@ Perform the following steps in order:
 * Run the following: `choco install openssl` (yes, even though it gets built during `npm install`)
 * Run the following: `choco install nasm` and add the directory containing the NASM executable to your PATH variable (yes, even though it's bundled with nodejs)
 * Install [Strawberry Perl](https://strawberryperl.com/)
-* Clone OrangeGitFish somewhere
+* Clone nodegit somewhere
+* Run `npm install` in the nodegit directory
+* Clone OrangeGitFish next to the nodegit directory
 * In the OrangeGitFish directory, Run `npm install`
 * Run `npm run install-app-deps`
 * Run `npm run start`
