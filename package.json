@@ -24,7 +24,7 @@
     "bootstrap-icons": "^1.7.1",
     "jquery": "^3.6.0",
     "keytar": "^7.7.0",
-    "nodegit": "^0.28.0-alpha.10",
+    "nodegit": "^0.28.0-alpha.18",
     "popper.js": "^1.16.1"
   },
   "build": {
