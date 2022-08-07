@@ -1,3 +1,5 @@
+# Deprecated in favor of this project: https://github.com/jlpatter/oxidized_git
+
 # OrangeGitFish
 
 ![There's supposed to be an image here...](./fish.png)
